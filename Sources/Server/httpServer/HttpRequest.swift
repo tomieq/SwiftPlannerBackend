@@ -16,6 +16,10 @@ public class HttpRequest {
     public var body: [UInt8] = []
     public var address: String? = ""
     public var params: [String: String] = [:]
+    
+    public var bodyString: String? {
+        return String(bytes: body, encoding: .utf8)
+    }
 
     public init() {}
 
