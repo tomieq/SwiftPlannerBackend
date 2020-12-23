@@ -1,6 +1,7 @@
 import Dispatch
 
-let server = demoServer("/")
+let server = HttpServer()
+let application = WebApplication(server)
 
 let semaphore = DispatchSemaphore(value: 0)
 do {
@@ -11,3 +12,5 @@ do {
     print("Server start error: \(error)")
     semaphore.signal()
 }
+
+
