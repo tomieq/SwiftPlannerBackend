@@ -17,6 +17,9 @@ class ModelBuilder {
         
         var workplaces: [ScheduleWorkplace] = []
         dto.workplaces?.forEach { workplace in
+            if workplace.allowedUsers?.isEmpty ?? true {
+                print("Error! No users can work in workplace \(workplace.name ?? "unknown")")
+            }
             var days: [ScheduleDay] = []
             for dayNumber in 1..<(daysInMonth+1) {
                 var availableUsers: [ScheduleUser] = []
@@ -32,7 +35,9 @@ class ModelBuilder {
                         }
                     }
                 }
-                days.append(ScheduleDay(dayNumber: dayNumber, availableUsers: availableUsers))
+                if !availableUsers.isEmpty {
+                    days.append(ScheduleDay(dayNumber: dayNumber, availableUsers: availableUsers))
+                }
             }
             let scheduledWorkplace = ScheduleWorkplace(id: workplace.id ?? 0, name: workplace.name ?? "unknown", scheduleDays: days)
             workplaces.append(scheduledWorkplace)

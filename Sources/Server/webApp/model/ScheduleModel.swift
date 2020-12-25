@@ -12,13 +12,85 @@ class ScheduleModel: Codable {
     let workplaces: [ScheduleWorkplace]
     var users: [User]
     
+    var plannedDays: Int {
+        var planned = 0
+        for workplace in self.workplaces {
+            for scheduleDay in workplace.scheduleDays {
+                if case .some = scheduleDay.selectedUser {
+                    planned = planned + 1
+                }
+            }
+        }
+        return planned
+    }
+    
+    var maxDaysToPlan: Int {
+        if self.users.isEmpty {
+            return self.plannedDays
+        }
+        var maxToPlan = 0
+        for workplace in self.workplaces {
+            for scheduleDay in workplace.scheduleDays {
+                if !scheduleDay.availableUsers.isEmpty {
+                    maxToPlan = maxToPlan + 1
+                }
+            }
+        }
+        return maxToPlan
+    }
+    
+    
     init(workplaces: [ScheduleWorkplace], users: [User]) {
         self.workplaces = workplaces
         self.users = users
     }
     
     func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) {
-        self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.selectedUser = user
+        if let userInModel = (self.users.filter { $0.id == user.id }.first) {
+            print("Assigned \(user.name) to work on \(dayNumber.ordinal) in \(workplace.name).")
+            
+            // assign that user to selected workplace in particular day
+            self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.selectedUser = user
+            
+            userInModel.maxWorkingDays = userInModel.maxWorkingDays - 1
+            if userInModel.maxWorkingDays == 0 {
+                print("Info: User \(user.name) has reached his limit of working days.")
+                self.remove(user: user)
+                return
+            }
+            // remove user's possible days from previous, current and day after day
+            for workplace in self.workplaces {
+                workplace.scheduleDays.filter{ $0.dayNumber == dayNumber - 1 }.forEach { scheduleDay in
+                    scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != user.id }
+                }
+                workplace.scheduleDays.filter{ $0.dayNumber == dayNumber }.forEach { scheduleDay in
+                    scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != user.id }
+                }
+                workplace.scheduleDays.filter{ $0.dayNumber == dayNumber + 1 }.forEach { scheduleDay in
+                    scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != user.id }
+                }
+            }
+            // check if there are any possible days left
+            var numberOfPossibleDays = 0
+            for workplace in self.workplaces {
+                for scheduleDay in workplace.scheduleDays {
+                    numberOfPossibleDays = numberOfPossibleDays + scheduleDay.availableUsers.count { $0.id == user.id }
+                }
+            }
+            if numberOfPossibleDays == 0 {
+                print("Info: User \(user.name) has no more possible days to work.")
+                self.remove(user: user)
+            }
+            // mark users with possibilities on the same day that they don't have to work in this place any more
+            for workplaceItem in self.workplaces {
+                workplaceItem.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.availableUsers.forEach { availableUser in
+                    availableUser.otherWorkplaceIDs = availableUser.otherWorkplaceIDs.filter { $0 != workplace.id }
+                }
+            }
+        } else {
+            print("Error! User \(user.name) not found in users list.")
+        }
+    }
     
     func remove(user: User) {
         self.remove(userID: user.id)
@@ -30,8 +102,8 @@ class ScheduleModel: Codable {
     
     private func remove(userID: Int) {
         self.users = self.users.filter { $0.id != userID }
-        self.workplaces.forEach { workplace in
-            workplace.scheduleDays.forEach { scheduleDay in
+        for workplace in self.workplaces {
+            for scheduleDay in workplace.scheduleDays {
                 scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != userID }
             }
         }
@@ -64,7 +136,7 @@ class ScheduleWorkplace: Codable {
 class ScheduleDay: Codable {
     let dayNumber: Int
     var selectedUser: ScheduleUser?
-    let availableUsers: [ScheduleUser]
+    var availableUsers: [ScheduleUser]
     
     init(dayNumber: Int, availableUsers: [ScheduleUser]) {
         self.dayNumber = dayNumber
@@ -72,12 +144,20 @@ class ScheduleDay: Codable {
     }
 }
 
-struct ScheduleUser: Codable {
+class ScheduleUser: Codable {
     let id: Int
     let name: String
     let workplacePriority: Int
     let assignmantLevel: AssignmaneLevel
-    let otherWorkplaceIDs: [Int]
+    var otherWorkplaceIDs: [Int]
+    
+    init(id: Int, name: String, workplacePriority: Int, assignmantLevel: AssignmaneLevel, otherWorkplaceIDs: [Int]) {
+        self.id = id
+        self.name = name
+        self.workplacePriority = workplacePriority
+        self.assignmantLevel = assignmantLevel
+        self.otherWorkplaceIDs = otherWorkplaceIDs
+    }
 }
 
 enum AssignmaneLevel: String, Codable {

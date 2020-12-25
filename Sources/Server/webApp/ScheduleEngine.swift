@@ -9,7 +9,6 @@ import Foundation
 
 class ScheduleEngine {
     private let model: ScheduleModel
-    private let maximumDaysToPlan: Int
     
     init(model: ScheduleModel) {
         
@@ -25,37 +24,63 @@ class ScheduleEngine {
         
         
         //print("model \(self.model.debugDescription)")
-        // calculate max algorith possibilities
-        var maxPlannedDays = 0
-        var allDays = 0
-        self.model.workplaces.forEach { workplace in
-            workplace.scheduleDays.forEach { scheduleDay in
-                allDays = allDays + 1
-                if !scheduleDay.availableUsers.isEmpty {
-                    maxPlannedDays = maxPlannedDays + 1
-                }
-            }
-        }
-        self.maximumDaysToPlan = maxPlannedDays
-        if maxPlannedDays != allDays {
-            print("Warning! Only \(maxPlannedDays) days of \(allDays) have candidates for work!")
-        }
+        
+        print("Scheduler will be able to plan \(model.maxDaysToPlan) days.")
     }
     
     func exec() {
-        self.tryAssignSingleCandidates()
+        
+        while model.plannedDays != model.maxDaysToPlan {
+            let plannedDaysBefore = model.plannedDays
+            self.runAlgorithms()
+            let plannedDaysAfter = model.plannedDays
+            if plannedDaysBefore == plannedDaysAfter { break }
+        }
+        
+        if model.plannedDays == model.maxDaysToPlan {
+            print("Success! Scheduler planned all possible days.")
+        }
+    }
+    
+    private func runAlgorithms() {
+
+        while model.plannedDays != model.maxDaysToPlan {
+            let plannedDaysBefore = model.plannedDays
+            self.assignSingleCandidates()
+            let plannedDaysAfter = model.plannedDays
+            if plannedDaysBefore == plannedDaysAfter { break }
+        }
+        while model.plannedDays != model.maxDaysToPlan {
+            let plannedDaysBefore = model.plannedDays
+            self.assignCandidateThatCanWorkOnlyHere()
+            let plannedDaysAfter = model.plannedDays
+            if plannedDaysBefore == plannedDaysAfter { break }
+        }
+        print("plannedDaysAfter = \(model.plannedDays)")
     }
     
     // funkcja szuka kandydatów, którzy jako jedyni zgłosili się do pracy danego dnia w tym miejscu pracy i mogą pracować tylko
     // i wyłącznie w tym miejscu pracy
-    private func tryAssignSingleCandidates() {
-        model.workplaces.forEach { workplace in
-            workplace.scheduleDays.forEach { scheduleDay in
+    private func assignSingleCandidates() {
+        for workplace in self.model.workplaces {
+            for scheduleDay in workplace.scheduleDays {
                 if scheduleDay.availableUsers.count == 1, let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty {
-                    let maxWorkingDays = model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
-                    if maxWorkingDays == 0 {
-                        model.remove(user: selectedUser)
-                    }
+                    self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                    return
+                }
+            }
+        }
+    }
+    
+    // funkcja szuka kandydatów, którzy zgłosili się do pracy danego dnia i wybiera takiego, który jako jedyny tylko tutaj może pracować
+    func assignCandidateThatCanWorkOnlyHere() {
+        for workplace in self.model.workplaces {
+            for scheduleDay in workplace.scheduleDays {
+                
+                let usersThatCanWorkOnlyHere = scheduleDay.availableUsers.filter { $0.otherWorkplaceIDs.isEmpty }
+                if usersThatCanWorkOnlyHere.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
+                    self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                    return
                 }
             }
         }
