@@ -37,9 +37,9 @@ class ModelBuilder {
             let scheduledWorkplace = ScheduleWorkplace(id: workplace.id ?? 0, name: workplace.name ?? "unknown", scheduleDays: days)
             workplaces.append(scheduledWorkplace)
         }
-
-        let scheduleModel = ScheduleModel(workplaces: workplaces)
-        //print("model \(scheduleModel.debugDescription)")
+        
+        let users: [User] = dto.users?.map{ User(id: $0.id ?? 0, name: $0.name ?? "unknown", wantedDayNumbers: $0.wantedDays ?? [], possibleDayNumbers: $0.possibleDays ?? [], workPlaceIDs: $0.allowedWorkplaceIDs ?? [], maxWorkingDays: $0.maxWorkingDays ?? 0) } ?? []
+        let scheduleModel = ScheduleModel(workplaces: workplaces, users: users)
         return scheduleModel
     }
     

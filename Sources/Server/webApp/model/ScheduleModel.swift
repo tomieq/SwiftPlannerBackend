@@ -10,9 +10,11 @@ import Foundation
 class ScheduleModel: Codable {
     
     let workplaces: [ScheduleWorkplace]
+    var users: [User]
     
-    init(workplaces: [ScheduleWorkplace]) {
+    init(workplaces: [ScheduleWorkplace], users: [User]) {
         self.workplaces = workplaces
+        self.users = users
     }
     
     func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) {
@@ -65,4 +67,23 @@ struct ScheduleUser: Codable {
 enum AssignmaneLevel: String, Codable {
     case wantedDay
     case possibleDay
+}
+
+
+class User: Codable {
+    let id: Int
+    let name: String
+    let wantedDayNumbers: [Int]
+    let possibleDayNumbers: [Int]
+    let workPlaceIDs: [Int]
+    var maxWorkingDays: Int
+    
+    init(id: Int, name: String, wantedDayNumbers: [Int], possibleDayNumbers: [Int], workPlaceIDs: [Int], maxWorkingDays: Int) {
+        self.id = id
+        self.name = name
+        self.wantedDayNumbers = wantedDayNumbers
+        self.possibleDayNumbers = possibleDayNumbers
+        self.workPlaceIDs = workPlaceIDs
+        self.maxWorkingDays = maxWorkingDays
+    }
 }
