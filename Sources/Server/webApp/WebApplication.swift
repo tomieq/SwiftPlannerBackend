@@ -34,23 +34,10 @@ class WebApplication {
                 print("\(resourceAmount) resources want to cover \(resourceWorkingDaySum) days")
                 
                 let model = ModelBuilder.buildModel(dto: inputDto)
-                print("model \(model.debugDescription)")
+                let engine = ScheduleEngine(model: model)
+                engine.exec()
                 
-                let outputDto = OutputDto()
-                outputDto.users = inputDto.users
-                outputDto.schedules = inputDto.workplaces?.map { workPlaceDto in
-                    let schedule = ScheduleDto()
-                    schedule.workPlaceID = workPlaceDto.id
-                    schedule.workPlaceName = workPlaceDto.name
-                    
-                    let plannedDay = ScheduledDayDto()
-                    plannedDay.dayNumber = 3
-                    plannedDay.userID = 1
-                    
-                    schedule.scheduledDays = [plannedDay]
-                    return schedule
-                    
-                }
+                let outputDto = ModelBuilder.buildOutputDto(model: model, inputDto: inputDto)
                 //print("\(outputDto.debugDescription)")
                 return outputDto.asValidRsponse()
             } catch let error {
