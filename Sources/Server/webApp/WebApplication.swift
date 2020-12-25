@@ -30,10 +30,13 @@ class WebApplication {
                 let resourceWorkingDaySum = inputDto.users?.compactMap{ $0.maxWorkingDays }.reduce(0, { x, y in
                     x + y
                 }) ?? 0
+                print("--------------------------------------------------------")
                 print("Received request to plan resorces for \(daysToPlan) days")
-                print("\(resourceAmount) resources want to cover \(resourceWorkingDaySum) days")
+                print("Input data has \(resourceAmount) resources and \(resourceWorkingDaySum) days to cover")
                 
-                let model = ModelBuilder.buildModel(dto: inputDto)
+                guard let model = ModelBuilder.buildModel(dto: inputDto) else {
+                    return .badRequest(nil)
+                }
                 let engine = ScheduleEngine(model: model)
                 engine.exec()
                 

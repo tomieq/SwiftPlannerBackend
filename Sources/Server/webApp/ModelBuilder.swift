@@ -8,12 +8,17 @@
 import Foundation
 
 class ModelBuilder {
-    static func buildModel(dto: InputDto) -> ScheduleModel {
+    static func buildModel(dto: InputDto) -> ScheduleModel? {
+        
+        guard let daysInMonth = dto.daysInMonth else {
+            print("Error! Missing daysInMonth value.")
+            return nil
+        }
         
         var workplaces: [ScheduleWorkplace] = []
         dto.workplaces?.forEach { workplace in
             var days: [ScheduleDay] = []
-            for dayNumber in 1..<((dto.daysInMonth ?? 0)+1) {
+            for dayNumber in 1..<(daysInMonth+1) {
                 var availableUsers: [ScheduleUser] = []
                 workplace.allowedUsers?.forEach { workplaceUser in
                     if let user = (dto.users?.filter { $0.id == workplaceUser.id })?.first {
