@@ -15,15 +15,50 @@ class WebApplication {
             
         }
 
-        server["/params/*"] = { request in
-            return .ok(.html("\(request.queryParams)"))
+        server["/planning"] = { [weak self] request in
             
+            //print("Planning request")
+            print("\(request.bodyString ?? "")")
+        
+            
+            do {
+                let inputDto = try JSONDecoder().decode(InputDto.self, from: Data(request.bodyString!.utf8))
+                //print("\(inputDto.debugDescription)")
+                
+                let daysToPlan = (inputDto.daysInMonth ?? 0) * (inputDto.workplaces?.count ?? 0)
+                let resourceAmount = inputDto.users?.count ?? 0
+                let resourceWorkingDaySum = inputDto.users?.compactMap{ $0.maxWorkingDays }.reduce(0, { x, y in
+                    x + y
+                }) ?? 0
+                print("Received request to plan resorces for \(daysToPlan) days")
+                print("\(resourceAmount) resources want to cover \(resourceWorkingDaySum) days")
+                
+                let model = ModelBuilder.buildModel(dto: inputDto)
+                print("model \(model.debugDescription)")
+                
+                let outputDto = OutputDto()
+                outputDto.users = inputDto.users
+                outputDto.schedules = inputDto.workplaces?.map { workPlaceDto in
+                    let schedule = ScheduleDto()
+                    schedule.workPlaceID = workPlaceDto.id
+                    schedule.workPlaceName = workPlaceDto.name
+                    
+                    let plannedDay = ScheduledDayDto()
+                    plannedDay.dayNumber = 3
+                    plannedDay.userID = 1
+                    
+                    schedule.scheduledDays = [plannedDay]
+                    return schedule
+                    
+                }
+                //print("\(outputDto.debugDescription)")
+                return outputDto.asValidRsponse()
+            } catch let error {
+                print("Error deserializing data \(error.localizedDescription)")
+                return HttpResponse.badRequest(.text(error.localizedDescription))
+            }
+            return HttpResponse.internalServerError
         }
-
-        server["/post"] = { [weak self] request in
-            return HttpResponse.ok(.text(request.bodyString ?? "nic"))
-        }
-        server["/magic"] = { .ok(.htmlBody("You asked for " + $0.path)) }
     }
 }
 
