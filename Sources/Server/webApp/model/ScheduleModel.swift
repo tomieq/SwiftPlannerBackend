@@ -19,6 +19,22 @@ class ScheduleModel: Codable {
     
     func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) {
         self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.selectedUser = user
+    
+    func remove(user: User) {
+        self.remove(userID: user.id)
+    }
+    
+    func remove(user: ScheduleUser) {
+        self.remove(userID: user.id)
+    }
+    
+    private func remove(userID: Int) {
+        self.users = self.users.filter { $0.id != userID }
+        self.workplaces.forEach { workplace in
+            workplace.scheduleDays.forEach { scheduleDay in
+                scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != userID }
+            }
+        }
     }
 }
 

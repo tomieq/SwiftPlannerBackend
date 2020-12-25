@@ -18,7 +18,7 @@ class WebApplication {
         server["/planning"] = { [weak self] request in
             
             //print("Planning request")
-            print("\(request.bodyString ?? "")")
+            //print("\(request.bodyString ?? "")")
         
             
             do {
