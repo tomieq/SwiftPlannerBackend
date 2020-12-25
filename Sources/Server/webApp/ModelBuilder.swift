@@ -38,9 +38,8 @@ class ModelBuilder {
         return scheduleModel
     }
     
-    static func buildOutputDto(model: ScheduleModel, inputDto: InputDto) -> OutputDto {
+    static func buildOutputDto(model: ScheduleModel) -> OutputDto {
         let outputDto = OutputDto()
-        outputDto.users = inputDto.users
         outputDto.schedules = []
         
         model.workplaces.forEach { workplace in

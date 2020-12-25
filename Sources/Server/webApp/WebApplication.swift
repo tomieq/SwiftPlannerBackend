@@ -37,7 +37,7 @@ class WebApplication {
                 let engine = ScheduleEngine(model: model)
                 engine.exec()
                 
-                let outputDto = ModelBuilder.buildOutputDto(model: model, inputDto: inputDto)
+                let outputDto = ModelBuilder.buildOutputDto(model: model)
                 //print("\(outputDto.debugDescription)")
                 return outputDto.asValidRsponse()
             } catch let error {

@@ -9,7 +9,6 @@ import Foundation
 
 class OutputDto: Codable {
     var schedules: [ScheduleDto]?
-    var users: [UserDto]?
 }
 
 extension OutputDto: CustomDebugStringConvertible {
