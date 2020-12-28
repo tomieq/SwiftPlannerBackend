@@ -9,12 +9,14 @@ import Foundation
 
 class ScheduleModel: Codable {
     
+    let versionNumber: Int
     var plannedDays: Int = 0
     var daysLeftToPlan: Int = 0
     var users: [User]
     let workplaces: [ScheduleWorkplace]
     
-    init(workplaces: [ScheduleWorkplace], users: [User]) {
+    init(versionNumber: Int, workplaces: [ScheduleWorkplace], users: [User]) {
+        self.versionNumber = versionNumber
         self.workplaces = workplaces
         self.users = users
         self.updateModelStats()

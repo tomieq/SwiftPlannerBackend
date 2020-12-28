@@ -44,7 +44,7 @@ class ModelBuilder {
         }
         
         let users: [User] = dto.users?.map{ User(id: $0.id ?? 0, name: $0.name ?? "unknown", wantedDayNumbers: $0.wantedDays ?? [], possibleDayNumbers: $0.possibleDays ?? [], workPlaceIDs: $0.allowedWorkplaceIDs ?? [], maxWorkingDays: $0.maxWorkingDays ?? 0) } ?? []
-        let scheduleModel = ScheduleModel(workplaces: workplaces, users: users)
+        let scheduleModel = ScheduleModel(versionNumber: 1, workplaces: workplaces, users: users)
         return scheduleModel
     }
     
@@ -93,10 +93,10 @@ class ModelBuilder {
             }
             return ScheduleWorkplaceSnapshot(id: workplace.id, name: workplace.name, scheduleDays: days)
         }
-        return ScheduleModelSnapshot(plannedDays: model.plannedDays, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces)
+        return ScheduleModelSnapshot(versionNumber: model.versionNumber, plannedDays: model.plannedDays, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces)
     }
     
-    static func makeModel(from snapshot: ScheduleModelSnapshot) -> ScheduleModel {
+    static func makeModel(versionNumber: Int, from snapshot: ScheduleModelSnapshot) -> ScheduleModel {
         let workplaces: [ScheduleWorkplace] = snapshot.workplaces.map { workplace in
             let scheduleDays: [ScheduleDay] = workplace.scheduleDays.map { scheduleDay in
                 var selectedUser: ScheduleUser? = nil
@@ -113,6 +113,6 @@ class ModelBuilder {
         let users: [User] = snapshot.users.map { u in
             return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, maxWorkingDays: u.maxWorkingDays)
         }
-        return ScheduleModel(workplaces: workplaces, users: users)
+        return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users)
     }
 }
