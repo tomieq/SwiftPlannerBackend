@@ -131,6 +131,12 @@ extension ScheduleModel: CustomDebugStringConvertible {
     }
 }
 
+extension ScheduleModel: Equatable {
+    static func == (lhs: ScheduleModel, rhs: ScheduleModel) -> Bool {
+        return lhs.versionNumber == rhs.versionNumber
+    }
+}
+
 class ScheduleWorkplace: Codable {
     let id: Int
     let name: String
