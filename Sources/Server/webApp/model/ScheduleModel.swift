@@ -54,26 +54,22 @@ class ScheduleModel: Codable {
             // assign that user to selected workplace in particular day
             let scheduledDay = self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first
             scheduledDay?.selectedUser = user
-            scheduledDay?.availableUsers = []
+            scheduledDay?.availableUsers = [] // clear all possibilities
             
             userInModel.maxWorkingDays = userInModel.maxWorkingDays - 1
             if userInModel.maxWorkingDays == 0 {
                 Logger.info("Exclusion" ,"User \(user.name) has reached his limit of working days.")
                 self.remove(user: user)
             } else {
-
-                // remove that day from user's wanted and possible days [user's tree]
-                userInModel.wantedDayNumbers = userInModel.wantedDayNumbers.filter { $0 != dayNumber }
-                userInModel.possibleDayNumbers = userInModel.possibleDayNumbers.filter { $0 != dayNumber }
+                self.markUserCanNotWorkOn(dayNumber: dayNumber, user: userInModel)
             }
             
             // remove user's possible days from previous, current and day after day [workplace tree]
-            for workplace in self.workplaces {
-                let daysToClean = [dayNumber - 1, dayNumber, dayNumber + 1]
-                workplace.scheduleDays.filter{ daysToClean.contains($0.dayNumber) }.forEach { scheduleDay in
-                    scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != user.id }
-                }
+            let daysToClean = [dayNumber - 1, dayNumber, dayNumber + 1]
+            for dayToClean in daysToClean {
+                self.markUserCanNotWorkOn(dayNumber: dayToClean, user: userInModel)
             }
+            
             // check if there are any possible days left
             var numberOfPossibleDays = 0
             for workplace in self.workplaces {
@@ -93,6 +89,7 @@ class ScheduleModel: Codable {
                     availableUser.otherWorkplaceIDs = availableUser.otherWorkplaceIDs.filter { $0 != workplace.id }
                 }
             }
+            
             // check if assigned day is in user's wish limitations
             for dayLimitation in userInModel.wishes.customDayLimits {
                 if dayLimitation.dayList.contains(dayNumber) {
@@ -101,11 +98,8 @@ class ScheduleModel: Codable {
                     
                     // jeśli limit został wyczerpany, usuń użytkownika z list availableUsers
                     if dayLimitation.dayLimit == 0 {
-                        for workplace in self.workplaces {
-                            let filteredDays = workplace.scheduleDays.filter { dayLimitation.dayList.contains($0.dayNumber) }
-                            for filteredDay in filteredDays {
-                                filteredDay.availableUsers = filteredDay.availableUsers.filter { $0.id != user.id }
-                            }
+                        for dayToRemove in dayLimitation.dayList {
+                            self.markUserCanNotWorkOn(dayNumber: dayToRemove, user: userInModel)
                         }
                         dayLimitation.dayList = []
                     }
@@ -131,12 +125,26 @@ class ScheduleModel: Codable {
     }
     
     private func remove(userID: Int) {
+        // remove user from user tree
         self.users = self.users.filter { $0.id != userID }
+        // update workplace tree to remove user from availableUsers
         for workplace in self.workplaces {
             for scheduleDay in workplace.scheduleDays {
                 scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != userID }
             }
         }
+    }
+    
+    private func markUserCanNotWorkOn(dayNumber: Int, user: User) {
+
+        for workplace in self.workplaces {
+            workplace.scheduleDays.filter{ dayNumber == $0.dayNumber }.forEach { scheduleDay in
+                scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != user.id }
+            }
+        }
+        // remove user's possible days from previous, current and day after day [user tree]
+        user.wantedDayNumbers = user.wantedDayNumbers.filter { dayNumber != $0 }
+        user.possibleDayNumbers = user.possibleDayNumbers.filter { dayNumber != $0 }
     }
 }
 
