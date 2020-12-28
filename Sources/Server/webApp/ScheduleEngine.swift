@@ -8,7 +8,15 @@
 import Foundation
 
 class ScheduleEngine {
-    private let model: ScheduleModel
+    private var model: ScheduleModel {
+        didSet {
+            Logger.debug("New model", "Assigned model ver.\(self.model.versionNumber)")
+        }
+    }
+    public var bestModel: ScheduleModel
+    private var possibleModels: [ScheduleModel]
+    
+    private let maxPlannedDays: Int
     
     init(model: ScheduleModel) {
         
@@ -19,31 +27,71 @@ class ScheduleEngine {
                 model.remove(user: user)
             }
         }
-
+        
         self.model = model
+        self.maxPlannedDays = model.daysLeftToPlan
+        self.bestModel = model
+        self.possibleModels = []
         
         //Logger.debug("Model", self.model.debugDescription)
-        
-        Logger.info("", "Scheduler will be able to plan \(model.daysLeftToPlan) days (based on lists of wanted and possible days).")
+        Logger.info("", "Scheduler will be able to plan \(self.maxPlannedDays) days (based on lists of wanted and possible days).")
     }
     
     func exec() {
+
+        self.runSimpleAssignAlgorithmsUntilNoProgress()
+        
+        if model.daysLeftToPlan == 0 {
+            Logger.info("", "Success! Scheduler planned all possible days.")
+            self.bestModel = self.model
+        } else {
+            self.startPlanningWithAssumtions()
+        }
+        
+        Logger.info("Finished", "Worked finished with planned \(self.model.plannedDays) days")
+    }
+    
+    private func startPlanningWithAssumtions() {
+        self.makePossibleModels()
+        
+        while let nextModel = self.possibleModels.first {
+            self.model = nextModel
+            Logger.debug("=== New model", "Assigned model ver.\(self.model.versionNumber)")
+            self.runSimpleAssignAlgorithmsUntilNoProgress()
+            self.assignModelIfTheBest(model: self.model)
+            
+            // jeśli zaplanowano wszystko, zakończ
+            if self.model.plannedDays == self.maxPlannedDays {
+                return
+            }
+            if self.model.daysLeftToPlan > 0 {
+                self.makePossibleModels()
+            }
+            self.possibleModels.remove(at: 0)
+        }
+        
+    }
+    
+    private func assignModelIfTheBest(model: ScheduleModel) {
+        
+        // in future respect scoring metrics
+        if model.plannedDays > self.bestModel.plannedDays {
+            self.bestModel = model
+        }
+    }
+    
+    private func runSimpleAssignAlgorithmsUntilNoProgress() {
         
         while self.model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
             Logger.debug("", "...starting all algorithms")
-            self.runAlgorithms()
+            self.runSimpleAssignAlgorithms()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
-        
-        if model.plannedDays == model.daysLeftToPlan {
-            Logger.info("", "Success! Scheduler planned all possible days.")
-        }
-        Logger.info("Finished", "Worked finished with planned \(self.model.plannedDays) days")
     }
     
-    private func runAlgorithms() {
+    private func runSimpleAssignAlgorithms() {
 
         while self.model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
@@ -66,7 +114,7 @@ class ScheduleEngine {
     private func assignSingleCandidates() {
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
-                if scheduleDay.availableUsers.count == 1, let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty {
+                if scheduleDay.selectedUser == nil, scheduleDay.availableUsers.count == 1, let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty {
                     self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
                     return
                 }
@@ -79,12 +127,38 @@ class ScheduleEngine {
     func assignCandidateThatCanWorkOnlyHere() {
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
-                
-                let usersThatCanWorkOnlyHere = scheduleDay.availableUsers.filter { $0.otherWorkplaceIDs.isEmpty }
-                let usersThatWantWork = usersThatCanWorkOnlyHere.filter{ $0.assignmantLevel == .wantedDay }
-                if usersThatWantWork.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
-                    self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
-                    return
+                if scheduleDay.selectedUser == nil, !scheduleDay.availableUsers.isEmpty {
+                    let usersThatCanWorkOnlyHere = scheduleDay.availableUsers.filter { $0.otherWorkplaceIDs.isEmpty }
+                    let usersThatWantWork = usersThatCanWorkOnlyHere.filter{ $0.assignmantLevel == .wantedDay }
+                    if usersThatWantWork.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
+                        self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                        return
+                    }
+                }
+            }
+        }
+    }
+
+    
+    func makePossibleModels() {
+        
+        var versionNumber = self.possibleModels.map { $0.versionNumber}.max() ?? 1
+        for workplace in self.model.workplaces {
+            for scheduleDay in workplace.scheduleDays {
+                if scheduleDay.selectedUser == nil, !scheduleDay.availableUsers.isEmpty {
+                    for user in scheduleDay.availableUsers {
+                        versionNumber = versionNumber + 1
+                        let possibleModel = ModelBuilder.copy(model: self.model, withVersionNumber: versionNumber)
+
+                        Logger.debug("ModelPreparation", "START model ver.\(possibleModel.versionNumber)")
+                        possibleModel.assign(user: user, on: scheduleDay.dayNumber, to: workplace)
+                        Logger.debug("ModelPreparation", "END model ver.\(possibleModel.versionNumber)")
+                        
+                        self.assignModelIfTheBest(model: possibleModel)
+                        if possibleModel.daysLeftToPlan > 0 {
+                            self.possibleModels.append(possibleModel)
+                        }
+                    }
                 }
             }
         }

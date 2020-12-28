@@ -45,7 +45,6 @@ class ScheduleModel: Codable {
             }
         }
         self.plannedDays = planned
-        Logger.debug("Stats", "Planned \(self.plannedDays) days and \(self.daysLeftToPlan) days still can be planned")
     }
     
     func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) {
@@ -53,7 +52,9 @@ class ScheduleModel: Codable {
             Logger.info("Assigment" ,"Assigned \(user.name) to work on \(dayNumber.ordinal) in \(workplace.name).")
             
             // assign that user to selected workplace in particular day
-            self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.selectedUser = user
+            let scheduledDay = self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first
+            scheduledDay?.selectedUser = user
+            scheduledDay?.availableUsers = []
             
             userInModel.maxWorkingDays = userInModel.maxWorkingDays - 1
             if userInModel.maxWorkingDays == 0 {
@@ -93,6 +94,7 @@ class ScheduleModel: Codable {
                 }
             }
             self.updateModelStats()
+            Logger.debug("Stats", "Planned \(self.plannedDays) days and \(self.daysLeftToPlan) days still can be planned")
             
             //print("ScheduleModel = \(self.debugDescription)")
         } else {

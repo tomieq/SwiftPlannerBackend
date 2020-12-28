@@ -115,4 +115,8 @@ class ModelBuilder {
         }
         return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users)
     }
+    
+    static func copy(model: ScheduleModel, withVersionNumber versionNumber: Int) -> ScheduleModel {
+        return ModelBuilder.makeModel(versionNumber: versionNumber, from: ModelBuilder.makeSnapshot(from: model))
+    }
 }
