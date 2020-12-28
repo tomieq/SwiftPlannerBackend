@@ -55,7 +55,7 @@ class ScheduleEngine {
     private func startPlanningWithAssumtions() {
         self.makePossibleModels()
         
-        while let nextModel = self.possibleModels.first {
+        while let nextModel = self.possibleModels.last {
             self.model = nextModel
             Logger.debug("=== New model", "Assigned model ver.\(self.model.versionNumber)")
             self.runSimpleAssignAlgorithmsUntilNoProgress()
@@ -67,8 +67,12 @@ class ScheduleEngine {
             }
             if self.model.daysLeftToPlan > 0 {
                 self.makePossibleModels()
+                
+                if self.bestModel.plannedDays == self.maxPlannedDays {
+                    return
+                }
             }
-            self.possibleModels.remove(at: 0)
+            self.possibleModels.remove(object: self.model)
         }
         
     }
