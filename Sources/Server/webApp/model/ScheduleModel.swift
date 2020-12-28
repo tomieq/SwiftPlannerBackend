@@ -45,19 +45,19 @@ class ScheduleModel: Codable {
             }
         }
         self.plannedDays = planned
-        print("Model stats: Planned \(self.plannedDays) days and \(self.daysLeftToPlan) days still can be planned")
+        Logger.debug("Stats", "Planned \(self.plannedDays) days and \(self.daysLeftToPlan) days still can be planned")
     }
     
     func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) {
         if let userInModel = (self.users.filter { $0.id == user.id }.first) {
-            print("Assigned \(user.name) to work on \(dayNumber.ordinal) in \(workplace.name).")
+            Logger.info("Assigment" ,"Assigned \(user.name) to work on \(dayNumber.ordinal) in \(workplace.name).")
             
             // assign that user to selected workplace in particular day
             self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.selectedUser = user
             
             userInModel.maxWorkingDays = userInModel.maxWorkingDays - 1
             if userInModel.maxWorkingDays == 0 {
-                print("Info: User \(user.name) has reached his limit of working days.")
+                Logger.info("Exclusion" ,"User \(user.name) has reached his limit of working days.")
                 self.remove(user: user)
             } else {
 
@@ -81,7 +81,7 @@ class ScheduleModel: Codable {
                 }
             }
             if numberOfPossibleDays == 0 {
-                print("Info: User \(user.name) has no more possible days to work.")
+                Logger.info("Exclusion" ,"User \(user.name) has no more possible days to work.")
                 self.remove(user: user)
             }
             
@@ -96,7 +96,7 @@ class ScheduleModel: Codable {
             
             //print("ScheduleModel = \(self.debugDescription)")
         } else {
-            print("Error! User \(user.name) not found in users list.")
+            Logger.error("Code error", "User \(user.name) not found in users list.")
         }
     }
     

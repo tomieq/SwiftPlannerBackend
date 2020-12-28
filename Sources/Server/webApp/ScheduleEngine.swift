@@ -15,7 +15,7 @@ class ScheduleEngine {
 
         model.users.forEach { user in
             if user.maxWorkingDays == 0 {
-                print("Warning! User \(user.name) was excluded because he has maxWorkingDays set to 0.")
+                Logger.warning("inputDataProblem", "User \(user.name) was excluded because he has maxWorkingDays set to 0.")
                 model.remove(user: user)
             }
         }
@@ -25,21 +25,21 @@ class ScheduleEngine {
         
         //print("model \(self.model.debugDescription)")
         
-        print("Scheduler will be able to plan \(model.daysLeftToPlan) days (based on lists of wanted and possible days).")
+        Logger.info("", "Scheduler will be able to plan \(model.daysLeftToPlan) days (based on lists of wanted and possible days).")
     }
     
     func exec() {
         
         while model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
-            print("...starting all algorithms")
+            Logger.debug("", "...starting all algorithms")
             self.runAlgorithms()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
         
         if model.plannedDays == model.daysLeftToPlan {
-            print("Success! Scheduler planned all possible days.")
+            Logger.info("", "Success! Scheduler planned all possible days.")
         }
     }
     
@@ -47,19 +47,18 @@ class ScheduleEngine {
 
         while model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
-            print("......starting assignSingleCandidates()")
+            Logger.debug("", "......starting assignSingleCandidates()")
             self.assignSingleCandidates()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
         while model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
-            print("......starting assignCandidateThatCanWorkOnlyHere()")
+            Logger.debug("", "......starting assignCandidateThatCanWorkOnlyHere()")
             self.assignCandidateThatCanWorkOnlyHere()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
-        print("plannedDaysAfter = \(model.plannedDays)")
     }
     
     // funkcja szuka kandydatów, którzy jako jedyni zgłosili się do pracy danego dnia w tym miejscu pracy i mogą pracować tylko

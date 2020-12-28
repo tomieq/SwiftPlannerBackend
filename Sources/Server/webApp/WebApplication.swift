@@ -32,7 +32,7 @@ class WebApplication {
                 }) ?? 0
                 print("--------------------------------------------------------")
                 print("Received request to plan resorces for \(daysToPlan) days")
-                print("Input data has \(resourceAmount) resources and \(resourceWorkingDaySum) days to cover")
+                print("Input data has \(resourceAmount) resources")
                 
                 guard let model = ModelBuilder.buildModel(dto: inputDto) else {
                     return .badRequest(nil)
