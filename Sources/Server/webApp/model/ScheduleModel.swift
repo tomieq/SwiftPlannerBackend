@@ -94,7 +94,7 @@ class ScheduleModel: Codable {
                 }
             }
             // check if assigned day is in user's wish limitations
-            for dayLimitation in userInModel.customDayLimits {
+            for dayLimitation in userInModel.wishes.customDayLimits {
                 if dayLimitation.dayList.contains(dayNumber) {
                     dayLimitation.dayLimit = dayLimitation.dayLimit - 1
                     dayLimitation.dayList = dayLimitation.dayList.filter { $0 != dayNumber }
@@ -210,16 +210,26 @@ class User: Codable {
     var possibleDayNumbers: [Int]
     let workPlaceIDs: [Int]
     var maxWorkingDays: Int
-    var customDayLimits: [UserDayLimitation]
+    var wishes: UserWishes
     
-    init(id: Int, name: String, wantedDayNumbers: [Int], possibleDayNumbers: [Int], workPlaceIDs: [Int], customDayLimits: [UserDayLimitation], maxWorkingDays: Int) {
+    init(id: Int, name: String, wantedDayNumbers: [Int], possibleDayNumbers: [Int], workPlaceIDs: [Int], wishes: UserWishes, maxWorkingDays: Int) {
         self.id = id
         self.name = name
         self.wantedDayNumbers = wantedDayNumbers
         self.possibleDayNumbers = possibleDayNumbers
         self.workPlaceIDs = workPlaceIDs
-        self.customDayLimits = customDayLimits
+        self.wishes = wishes
         self.maxWorkingDays = maxWorkingDays
+    }
+}
+
+class UserWishes: Codable {
+    var customDayLimits: [UserDayLimitation]
+    var dayAlternatives: [UserDayAlternative]
+    
+    init(customDayLimits: [UserDayLimitation], dayAlternatives: [UserDayAlternative]) {
+        self.customDayLimits = customDayLimits
+        self.dayAlternatives = dayAlternatives
     }
 }
 
@@ -230,5 +240,13 @@ class UserDayLimitation: Codable {
     init(dayLimit: Int, dayList: [Int]) {
         self.dayLimit = dayLimit
         self.dayList = dayList
+    }
+}
+
+class UserDayAlternative: Codable {
+    var rules: [UserDayLimitation]
+    
+    init(rules: [UserDayLimitation]) {
+        self.rules = rules
     }
 }

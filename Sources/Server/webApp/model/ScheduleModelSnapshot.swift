@@ -42,11 +42,20 @@ struct UserSnapshot {
     let wantedDayNumbers: [Int]
     let possibleDayNumbers: [Int]
     let workPlaceIDs: [Int]
-    var customDayLimits: [UserDayLimitationSnapshot]
+    var wishes: UserWishesSnapshot
     let maxWorkingDays: Int
+}
+
+struct UserWishesSnapshot {
+    var customDayLimits: [UserDayLimitationSnapshot]
+    var dayAlternatives: [UserDayAlternativeSnapshot]
 }
 
 struct UserDayLimitationSnapshot {
     var dayLimit: Int
     var dayList: [Int]
+}
+
+struct UserDayAlternativeSnapshot {
+    var rules: [UserDayLimitationSnapshot]
 }

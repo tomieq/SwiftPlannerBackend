@@ -7,6 +7,11 @@
 
 import Foundation
 
+/*
+ typ `and` : wypełnioene pola amount orad days
+ typ `or`: wypełnine pola `rules`
+ */
+
 enum WishType: String, Codable {
     case and
     case or
