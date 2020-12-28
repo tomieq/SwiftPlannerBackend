@@ -25,33 +25,36 @@ class ScheduleEngine {
         
         //print("model \(self.model.debugDescription)")
         
-        print("Scheduler will be able to plan \(model.maxDaysToPlan) days.")
+        print("Scheduler will be able to plan \(model.daysLeftToPlan) days (based on lists of wanted and possible days).")
     }
     
     func exec() {
         
-        while model.plannedDays != model.maxDaysToPlan {
+        while model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
+            print("...starting all algorithms")
             self.runAlgorithms()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
         
-        if model.plannedDays == model.maxDaysToPlan {
+        if model.plannedDays == model.daysLeftToPlan {
             print("Success! Scheduler planned all possible days.")
         }
     }
     
     private func runAlgorithms() {
 
-        while model.plannedDays != model.maxDaysToPlan {
+        while model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
+            print("......starting assignSingleCandidates()")
             self.assignSingleCandidates()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
-        while model.plannedDays != model.maxDaysToPlan {
+        while model.daysLeftToPlan > 0 {
             let plannedDaysBefore = model.plannedDays
+            print("......starting assignCandidateThatCanWorkOnlyHere()")
             self.assignCandidateThatCanWorkOnlyHere()
             let plannedDaysAfter = model.plannedDays
             if plannedDaysBefore == plannedDaysAfter { break }
