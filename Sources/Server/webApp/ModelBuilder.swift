@@ -8,7 +8,7 @@
 import Foundation
 
 class ModelBuilder {
-    static func buildModel(dto: InputDto) -> ScheduleModel? {
+    static func makeModel(from dto: InputDto) -> ScheduleModel? {
         
         guard let daysInMonth = dto.daysInMonth else {
             print("Error! Missing daysInMonth value.")
@@ -48,7 +48,7 @@ class ModelBuilder {
         return scheduleModel
     }
     
-    static func buildOutputDto(model: ScheduleModel) -> OutputDto {
+    static func makeOutputDto(from model: ScheduleModel) -> OutputDto {
         let outputDto = OutputDto()
         outputDto.schedules = []
         
@@ -72,5 +72,47 @@ class ModelBuilder {
         return outputDto
             
         
+    }
+    
+    static func makeSnapshot(from model: ScheduleModel) -> ScheduleModelSnapshot {
+        
+        let users: [UserSnapshot] = model.users.map {
+            UserSnapshot(id: $0.id, name: $0.name, wantedDayNumbers: $0.wantedDayNumbers, possibleDayNumbers: $0.possibleDayNumbers, workPlaceIDs: $0.workPlaceIDs, maxWorkingDays: $0.maxWorkingDays)
+        }
+        let workplaces: [ScheduleWorkplaceSnapshot] = model.workplaces.map { workplace in
+            let days: [ScheduleDaySnapshot] = workplace.scheduleDays.map { scheduleDay in
+                var selectedUser: ScheduleUserSnapshot? = nil
+                if let su = scheduleDay.selectedUser {
+                    selectedUser = ScheduleUserSnapshot(id: su.id, name: su.name, workplacePriority: su.workplacePriority, assignmantLevel: su.assignmantLevel, otherWorkplaceIDs: su.otherWorkplaceIDs)
+                }
+                let availableUsers: [ScheduleUserSnapshot] = scheduleDay.availableUsers.map { su in
+                    return ScheduleUserSnapshot(id: su.id, name: su.name, workplacePriority: su.workplacePriority, assignmantLevel: su.assignmantLevel, otherWorkplaceIDs: su.otherWorkplaceIDs)
+                    
+                }
+                return ScheduleDaySnapshot(dayNumber: scheduleDay.dayNumber, selectedUser: selectedUser, availableUsers: availableUsers)
+            }
+            return ScheduleWorkplaceSnapshot(id: workplace.id, name: workplace.name, scheduleDays: days)
+        }
+        return ScheduleModelSnapshot(plannedDays: model.plannedDays, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces)
+    }
+    
+    static func makeModel(from snapshot: ScheduleModelSnapshot) -> ScheduleModel {
+        let workplaces: [ScheduleWorkplace] = snapshot.workplaces.map { workplace in
+            let scheduleDays: [ScheduleDay] = workplace.scheduleDays.map { scheduleDay in
+                var selectedUser: ScheduleUser? = nil
+                if let u = scheduleDay.selectedUser {
+                    selectedUser = ScheduleUser(id: u.id, name: u.name, workplacePriority: u.workplacePriority, assignmantLevel: u.assignmantLevel, otherWorkplaceIDs: u.otherWorkplaceIDs)
+                }
+                let availableUsers: [ScheduleUser] = scheduleDay.availableUsers.map { u in
+                    return ScheduleUser(id: u.id, name: u.name, workplacePriority: u.workplacePriority, assignmantLevel: u.assignmantLevel, otherWorkplaceIDs: u.otherWorkplaceIDs)
+                }
+                return ScheduleDay(dayNumber: scheduleDay.dayNumber, availableUsers: availableUsers, selectedUser: selectedUser)
+            }
+            return ScheduleWorkplace(id: workplace.id, name: workplace.name, scheduleDays: scheduleDays)
+        }
+        let users: [User] = snapshot.users.map { u in
+            return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, maxWorkingDays: u.maxWorkingDays)
+        }
+        return ScheduleModel(workplaces: workplaces, users: users)
     }
 }

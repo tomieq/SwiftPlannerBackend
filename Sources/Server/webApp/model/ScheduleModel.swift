@@ -9,12 +9,10 @@ import Foundation
 
 class ScheduleModel: Codable {
     
-    let workplaces: [ScheduleWorkplace]
-    var users: [User]
-    
     var plannedDays: Int = 0
     var daysLeftToPlan: Int = 0
-    
+    var users: [User]
+    let workplaces: [ScheduleWorkplace]
     
     init(workplaces: [ScheduleWorkplace], users: [User]) {
         self.workplaces = workplaces
@@ -146,9 +144,10 @@ class ScheduleDay: Codable {
     var selectedUser: ScheduleUser?
     var availableUsers: [ScheduleUser]
     
-    init(dayNumber: Int, availableUsers: [ScheduleUser]) {
+    init(dayNumber: Int, availableUsers: [ScheduleUser], selectedUser: ScheduleUser? = nil) {
         self.dayNumber = dayNumber
         self.availableUsers = availableUsers
+        self.selectedUser = selectedUser
     }
 }
 
