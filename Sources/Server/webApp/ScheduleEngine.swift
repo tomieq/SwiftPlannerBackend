@@ -72,13 +72,15 @@ class ScheduleEngine {
         }
     }
     
-    // funkcja szuka kandydatów, którzy zgłosili się do pracy danego dnia i wybiera takiego, który jako jedyny tylko tutaj może pracować
+    // funkcja szuka kandydatów, którzy zgłosili się do pracy danego dnia i wybiera takiego, który jako jedyny tylko tutaj może pracować,
+    // a dany dzień ma jako `wanted` (a nie `possible`)
     func assignCandidateThatCanWorkOnlyHere() {
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
                 
                 let usersThatCanWorkOnlyHere = scheduleDay.availableUsers.filter { $0.otherWorkplaceIDs.isEmpty }
-                if usersThatCanWorkOnlyHere.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
+                let usersThatWantWork = usersThatCanWorkOnlyHere.filter{ $0.assignmantLevel == .wantedDay }
+                if usersThatWantWork.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
                     self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
                     return
                 }
