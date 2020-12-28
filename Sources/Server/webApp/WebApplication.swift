@@ -17,8 +17,7 @@ class WebApplication {
 
         server["/planning"] = { [weak self] request in
             
-            //print("Planning request")
-            //print("\(request.bodyString ?? "")")
+            //Logger.debug("Incoming body", request.bodyString ?? "")
         
             
             do {
@@ -27,21 +26,18 @@ class WebApplication {
                 
                 let daysToPlan = (inputDto.daysInMonth ?? 0) * (inputDto.workplaces?.count ?? 0)
                 let resourceAmount = inputDto.users?.count ?? 0
-                let resourceWorkingDaySum = inputDto.users?.compactMap{ $0.maxWorkingDays }.reduce(0, { x, y in
-                    x + y
-                }) ?? 0
                 print("--------------------------------------------------------")
                 print("Received request to plan resorces for \(daysToPlan) days")
                 print("Input data has \(resourceAmount) resources")
                 
-                guard let model = ModelBuilder.buildModel(dto: inputDto) else {
+                guard let model = ModelBuilder.makeModel(from: inputDto) else {
                     return .badRequest(nil)
                 }
                 let engine = ScheduleEngine(model: model)
                 engine.exec()
                 
-                let outputDto = ModelBuilder.buildOutputDto(model: model)
-                //print("\(outputDto.debugDescription)")
+                let outputDto = ModelBuilder.makeOutputDto(from: engine.bestModel)
+                Logger.debug("Outcoming body", outputDto.debugDescription)
                 return outputDto.asValidRsponse()
             } catch let error {
                 print("Error deserializing data \(error.localizedDescription)")
