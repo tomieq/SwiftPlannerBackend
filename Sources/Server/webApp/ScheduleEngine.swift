@@ -15,6 +15,7 @@ class ScheduleEngine {
     }
     public var bestModel: ScheduleModel
     private var possibleModels: [ScheduleModel]
+    private var possibleModelCounter = 1
     
     private let maxPlannedDays: Int
     
@@ -142,13 +143,15 @@ class ScheduleEngine {
     
     func makePossibleModels() {
         
-        var versionNumber = self.possibleModels.map { $0.versionNumber}.max() ?? 1
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
                 if scheduleDay.selectedUser == nil, !scheduleDay.availableUsers.isEmpty {
-                    for user in scheduleDay.availableUsers {
-                        versionNumber = versionNumber + 1
-                        let possibleModel = ModelBuilder.copy(model: self.model, withVersionNumber: versionNumber)
+                    
+                    let wantingUsers = scheduleDay.availableUsers.filter { $0.assignmantLevel == .wantedDay }
+                    let users = wantingUsers.isEmpty ? scheduleDay.availableUsers : wantingUsers
+                    for user in users {
+                        self.possibleModelCounter = self.possibleModelCounter + 1
+                        let possibleModel = ModelBuilder.copy(model: self.model, withVersionNumber: self.possibleModelCounter)
 
                         Logger.debug("ModelPreparation", "START model ver.\(possibleModel.versionNumber)")
                         possibleModel.assign(user: user, on: scheduleDay.dayNumber, to: workplace)
