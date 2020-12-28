@@ -43,7 +43,13 @@ class ModelBuilder {
             workplaces.append(scheduledWorkplace)
         }
         
-        let users: [User] = dto.users?.map{ User(id: $0.id ?? 0, name: $0.name ?? "unknown", wantedDayNumbers: $0.wantedDays ?? [], possibleDayNumbers: $0.possibleDays ?? [], workPlaceIDs: $0.allowedWorkplaceIDs ?? [], maxWorkingDays: $0.maxWorkingDays ?? 0) } ?? []
+        let users: [User] = dto.users?.map { user in
+            let dayLimits: [UserDayLimitation] = user.wishes?.filter { $0.type == .and }.map { wishDto in
+                return UserDayLimitation(dayLimit: wishDto.amount ?? 0, dayList: wishDto.days ?? [])
+                } ?? []
+            return User(id: user.id ?? 0, name: user.name ?? "unknown", wantedDayNumbers: user.wantedDays ?? [], possibleDayNumbers: user.possibleDays ?? [], workPlaceIDs: user.allowedWorkplaceIDs ?? [], dayLimits: dayLimits, maxWorkingDays: user.maxWorkingDays ?? 0)
+            
+            } ?? []
         let scheduleModel = ScheduleModel(versionNumber: 1, workplaces: workplaces, users: users)
         return scheduleModel
     }
@@ -76,8 +82,9 @@ class ModelBuilder {
     
     static func makeSnapshot(from model: ScheduleModel) -> ScheduleModelSnapshot {
         
-        let users: [UserSnapshot] = model.users.map {
-            UserSnapshot(id: $0.id, name: $0.name, wantedDayNumbers: $0.wantedDayNumbers, possibleDayNumbers: $0.possibleDayNumbers, workPlaceIDs: $0.workPlaceIDs, maxWorkingDays: $0.maxWorkingDays)
+        let users: [UserSnapshot] = model.users.map { user in
+            let dayLimits: [UserDayLimitationSnapshot] = user.dayLimits.map { UserDayLimitationSnapshot(dayLimit: $0.dayLimit, dayList: $0.dayList) }
+            return UserSnapshot(id: user.id, name: user.name, wantedDayNumbers: user.wantedDayNumbers, possibleDayNumbers: user.possibleDayNumbers, workPlaceIDs: user.workPlaceIDs, dayLimits: dayLimits, maxWorkingDays: user.maxWorkingDays)
         }
         let workplaces: [ScheduleWorkplaceSnapshot] = model.workplaces.map { workplace in
             let days: [ScheduleDaySnapshot] = workplace.scheduleDays.map { scheduleDay in
@@ -111,7 +118,8 @@ class ModelBuilder {
             return ScheduleWorkplace(id: workplace.id, name: workplace.name, scheduleDays: scheduleDays)
         }
         let users: [User] = snapshot.users.map { u in
-            return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, maxWorkingDays: u.maxWorkingDays)
+            let dayLimits: [UserDayLimitation] = u.dayLimits.map { UserDayLimitation(dayLimit: $0.dayLimit, dayList: $0.dayList) }
+            return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, dayLimits: dayLimits, maxWorkingDays: u.maxWorkingDays)
         }
         return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users)
     }

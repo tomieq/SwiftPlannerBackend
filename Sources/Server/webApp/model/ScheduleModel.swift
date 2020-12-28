@@ -93,6 +93,26 @@ class ScheduleModel: Codable {
                     availableUser.otherWorkplaceIDs = availableUser.otherWorkplaceIDs.filter { $0 != workplace.id }
                 }
             }
+            // check if assigned day is in user's wish limitations
+            for dayLimitation in userInModel.dayLimits {
+                if dayLimitation.dayList.contains(dayNumber) {
+                    dayLimitation.dayLimit = dayLimitation.dayLimit - 1
+                    dayLimitation.dayList = dayLimitation.dayList.filter { $0 != dayNumber }
+                    
+                    // jeśli limit został wyczerpany, usuń użytkownika z list availableUsers
+                    if dayLimitation.dayLimit == 0 {
+                        for workplace in self.workplaces {
+                            let filteredDays = workplace.scheduleDays.filter { dayLimitation.dayList.contains($0.dayNumber) }
+                            for filteredDay in filteredDays {
+                                filteredDay.availableUsers = filteredDay.availableUsers.filter { $0.id != user.id }
+                            }
+                        }
+                        dayLimitation.dayList = []
+                    }
+                }
+            }
+            
+            
             self.updateModelStats()
             Logger.debug("Stats", "Planned \(self.plannedDays) days and \(self.daysLeftToPlan) days still can be planned")
             
@@ -190,13 +210,25 @@ class User: Codable {
     var possibleDayNumbers: [Int]
     let workPlaceIDs: [Int]
     var maxWorkingDays: Int
+    var dayLimits: [UserDayLimitation]
     
-    init(id: Int, name: String, wantedDayNumbers: [Int], possibleDayNumbers: [Int], workPlaceIDs: [Int], maxWorkingDays: Int) {
+    init(id: Int, name: String, wantedDayNumbers: [Int], possibleDayNumbers: [Int], workPlaceIDs: [Int], dayLimits: [UserDayLimitation], maxWorkingDays: Int) {
         self.id = id
         self.name = name
         self.wantedDayNumbers = wantedDayNumbers
         self.possibleDayNumbers = possibleDayNumbers
         self.workPlaceIDs = workPlaceIDs
+        self.dayLimits = dayLimits
         self.maxWorkingDays = maxWorkingDays
+    }
+}
+
+class UserDayLimitation: Codable {
+    var dayLimit: Int
+    var dayList: [Int]
+    
+    init(dayLimit: Int, dayList: [Int]) {
+        self.dayLimit = dayLimit
+        self.dayList = dayList
     }
 }

@@ -15,4 +15,5 @@ class UserDto: Codable {
     var impossibleDays: [Int]?
     var wantedDays: [Int]?
     var allowedWorkplaceIDs: [Int]?
+    var wishes: [WishDto]?
 }

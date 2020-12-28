@@ -17,12 +17,12 @@ class WebApplication {
 
         server["/planning"] = { [weak self] request in
             
-            //Logger.debug("Incoming body", request.bodyString ?? "")
+            Logger.debug("Incoming body", request.bodyString ?? "")
         
             
             do {
                 let inputDto = try JSONDecoder().decode(InputDto.self, from: Data(request.bodyString!.utf8))
-                //print("\(inputDto.debugDescription)")
+                Logger.debug("InputDto", inputDto.debugDescription)
                 
                 let daysToPlan = (inputDto.daysInMonth ?? 0) * (inputDto.workplaces?.count ?? 0)
                 let resourceAmount = inputDto.users?.count ?? 0
@@ -37,7 +37,7 @@ class WebApplication {
                 engine.exec()
                 
                 let outputDto = ModelBuilder.makeOutputDto(from: engine.bestModel)
-                Logger.debug("Outcoming body", outputDto.debugDescription)
+                //Logger.debug("Outcoming body", outputDto.debugDescription)
                 return outputDto.asValidRsponse()
             } catch let error {
                 print("Error deserializing data \(error.localizedDescription)")
