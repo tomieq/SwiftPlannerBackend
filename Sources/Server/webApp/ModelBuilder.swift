@@ -44,20 +44,20 @@ class ModelBuilder {
         }
         
         let users: [User] = dto.users?.map { user in
-            let customDayLimits: [UserDayLimitation] = user.wishes?.filter { $0.type == .and }.map { wishDto in
-                return UserDayLimitation(dayLimit: wishDto.amount ?? 0, dayList: wishDto.days ?? [])
+            let workingDayLimitations: [UserWorkLimitation] = user.wishes?.filter { $0.type == .and }.map { wishDto in
+                return UserWorkLimitation(dayLimit: wishDto.amount ?? 0, dayList: wishDto.days ?? [])
                 } ?? []
             
             
-            let dayAlternatives: [UserDayAlternative] = user.wishes?.filter { $0.type == .or }.map { wishDto in
-                let rules: [UserDayLimitation] = wishDto.rules?.map { rule in
-                        return UserDayLimitation(dayLimit: rule.amount ?? 0, dayList: rule.days ?? [])
+            let workindDayXorLimitations: [UserWorkXorLimitation] = user.wishes?.filter { $0.type == .or }.map { wishDto in
+                let rules: [UserWorkLimitation] = wishDto.rules?.map { rule in
+                        return UserWorkLimitation(dayLimit: rule.amount ?? 0, dayList: rule.days ?? [])
                     } ?? []
-                return UserDayAlternative(rules: rules)
+                return UserWorkXorLimitation(rules: rules)
                 
                 } ?? []
         
-            let wishes = UserWishes(customDayLimits: customDayLimits, dayAlternatives: dayAlternatives)
+            let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
             return User(id: user.id ?? 0, name: user.name ?? "unknown", wantedDayNumbers: user.wantedDays ?? [], possibleDayNumbers: user.possibleDays ?? [], workPlaceIDs: user.allowedWorkplaceIDs ?? [], wishes: wishes, maxWorkingDays: user.maxWorkingDays ?? 0)
             
             } ?? []
@@ -94,14 +94,14 @@ class ModelBuilder {
     static func makeSnapshot(from model: ScheduleModel) -> ScheduleModelSnapshot {
         
         let users: [UserSnapshot] = model.users.map { user in
-            let customDayLimits: [UserDayLimitationSnapshot] = user.wishes.customDayLimits.map { UserDayLimitationSnapshot(dayLimit: $0.dayLimit, dayList: $0.dayList) }
-            let dayAlternatives: [UserDayAlternativeSnapshot] = user.wishes.dayAlternatives.map { dayAlternative in
-                let rules: [UserDayLimitationSnapshot] = dayAlternative.rules.map {
-                    UserDayLimitationSnapshot(dayLimit: $0.dayLimit, dayList: $0.dayList)
+            let customDayLimits: [UserWorkLimitationSnapshot] = user.wishes.workingDayLimitations.map { UserWorkLimitationSnapshot(dayLimit: $0.dayLimit, dayNumbers: $0.dayNumbers) }
+            let dayAlternatives: [UserWorkXorLimitationSnapshot] = user.wishes.workindDayXorLimitations.map { dayAlternative in
+                let rules: [UserWorkLimitationSnapshot] = dayAlternative.rules.map {
+                    UserWorkLimitationSnapshot(dayLimit: $0.dayLimit, dayNumbers: $0.dayNumbers)
                 }
-                return UserDayAlternativeSnapshot(rules: rules)
+                return UserWorkXorLimitationSnapshot(rules: rules)
             }
-            let wishes = UserWishesSnapshot(customDayLimits: customDayLimits, dayAlternatives: dayAlternatives)
+            let wishes = UserWishesSnapshot(workingDayLimitations: customDayLimits, workindDayXorLimitations: dayAlternatives)
             return UserSnapshot(id: user.id, name: user.name, wantedDayNumbers: user.wantedDayNumbers, possibleDayNumbers: user.possibleDayNumbers, workPlaceIDs: user.workPlaceIDs, wishes: wishes, maxWorkingDays: user.maxWorkingDays)
         }
         let workplaces: [ScheduleWorkplaceSnapshot] = model.workplaces.map { workplace in
@@ -136,12 +136,12 @@ class ModelBuilder {
             return ScheduleWorkplace(id: workplace.id, name: workplace.name, scheduleDays: scheduleDays)
         }
         let users: [User] = snapshot.users.map { u in
-            let customDayLimits: [UserDayLimitation] = u.wishes.customDayLimits.map { UserDayLimitation(dayLimit: $0.dayLimit, dayList: $0.dayList) }
-            let dayAlternatives: [UserDayAlternative] = u.wishes.dayAlternatives.map { dayAlternative in
-                let rules: [UserDayLimitation] = dayAlternative.rules.map { UserDayLimitation(dayLimit: $0.dayLimit, dayList: $0.dayList) }
-                return UserDayAlternative(rules: rules)
+            let workingDayLimitations: [UserWorkLimitation] = u.wishes.workingDayLimitations.map { UserWorkLimitation(dayLimit: $0.dayLimit, dayList: $0.dayNumbers) }
+            let workindDayXorLimitations: [UserWorkXorLimitation] = u.wishes.workindDayXorLimitations.map { dayAlternative in
+                let rules: [UserWorkLimitation] = dayAlternative.rules.map { UserWorkLimitation(dayLimit: $0.dayLimit, dayList: $0.dayNumbers) }
+                return UserWorkXorLimitation(rules: rules)
             }
-            let wishes = UserWishes(customDayLimits: customDayLimits, dayAlternatives: dayAlternatives)
+            let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
             return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, wishes: wishes, maxWorkingDays: u.maxWorkingDays)
         }
         return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users)

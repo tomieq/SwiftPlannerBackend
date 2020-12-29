@@ -47,15 +47,15 @@ struct UserSnapshot {
 }
 
 struct UserWishesSnapshot {
-    var customDayLimits: [UserDayLimitationSnapshot]
-    var dayAlternatives: [UserDayAlternativeSnapshot]
+    var workingDayLimitations: [UserWorkLimitationSnapshot]
+    var workindDayXorLimitations: [UserWorkXorLimitationSnapshot]
 }
 
-struct UserDayLimitationSnapshot {
+struct UserWorkLimitationSnapshot {
     var dayLimit: Int
-    var dayList: [Int]
+    var dayNumbers: [Int]
 }
 
-struct UserDayAlternativeSnapshot {
-    var rules: [UserDayLimitationSnapshot]
+struct UserWorkXorLimitationSnapshot {
+    var rules: [UserWorkLimitationSnapshot]
 }
