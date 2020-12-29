@@ -52,11 +52,19 @@ class ScheduleEngine {
         }
         
         self.possibleModels = []
-        Logger.info("Finished", "Worked finished with planned \(self.model.scheduledDaysAmount) days")
+        Logger.info("Finished", "Worked finished with planned \(self.bestModel.scheduledDaysAmount) days")
+    }
+    
+    private func isSchedulingFinished() -> Bool {
+        return self.bestModel.scheduledDaysAmount == self.maxPlannedDays
     }
     
     private func startPlanningWithAssumtions() {
         self.makePossibleModels()
+        
+        if self.isSchedulingFinished() {
+            return
+        }
         
         while let nextModel = self.possibleModels.last {
             self.model = nextModel
@@ -64,14 +72,13 @@ class ScheduleEngine {
             self.runSimpleAssignAlgorithmsUntilNoProgress()
             self.assignModelIfTheBest(model: self.model)
             
-            // jeśli zaplanowano wszystko, zakończ
-            if self.model.scheduledDaysAmount == self.maxPlannedDays {
+            if self.isSchedulingFinished() {
                 return
             }
             if self.model.daysLeftToPlan > 0 {
                 self.makePossibleModels()
                 
-                if self.bestModel.scheduledDaysAmount == self.maxPlannedDays {
+                if self.isSchedulingFinished() {
                     return
                 }
                 
