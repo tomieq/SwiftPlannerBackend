@@ -56,7 +56,16 @@ class ScheduleEngine {
     }
     
     private func isSchedulingFinished() -> Bool {
-        return self.bestModel.scheduledDaysAmount == self.maxPlannedDays
+        if self.bestModel.scheduledDaysAmount == self.maxPlannedDays {
+            Logger.debug("Termination", "Reached max planned days (\(self.maxPlannedDays))")
+            return true
+        }
+
+        if self.bestScoreHits > 400 {
+            Logger.debug("Termination", "Reached limit of top score hits")
+            return true
+        }
+        return false
     }
     
     private func startPlanningWithAssumtions() {
@@ -68,7 +77,7 @@ class ScheduleEngine {
         
         while let nextModel = self.possibleModels.last {
             self.model = nextModel
-            Logger.debug("=== New model", "Assigned model ver.\(self.model.versionNumber)")
+            Logger.debug("Exercising new model", "Assigned model ver.\(self.model.versionNumber)")
             self.runSimpleAssignAlgorithmsUntilNoProgress()
             self.assignModelIfTheBest(model: self.model)
             
@@ -79,10 +88,6 @@ class ScheduleEngine {
                 self.makePossibleModels()
                 
                 if self.isSchedulingFinished() {
-                    return
-                }
-                
-                if self.bestScoreHits > 400 {
                     return
                 }
             }
