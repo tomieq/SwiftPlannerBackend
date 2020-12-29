@@ -11,14 +11,14 @@ class WebApplication {
     
     init(_ server: HttpServer) {
 
-        server["/planning"] = { [weak self] request in
+        server["/planning"] = { request in
             
-            Logger.debug("Incoming body", request.bodyString ?? "")
+            //Logger.debug("Incoming body", request.bodyString ?? "")
         
             
             do {
                 let inputDto = try JSONDecoder().decode(InputDto.self, from: Data(request.bodyString!.utf8))
-                Logger.debug("InputDto", inputDto.debugDescription)
+                //Logger.debug("InputDto", inputDto.debugDescription)
                 
                 let daysToPlan = (inputDto.daysInMonth ?? 0) * (inputDto.workplaces?.count ?? 0)
                 let resourceAmount = inputDto.users?.count ?? 0
@@ -39,7 +39,6 @@ class WebApplication {
                 print("Error deserializing data \(error.localizedDescription)")
                 return HttpResponse.badRequest(.text(error.localizedDescription))
             }
-            return HttpResponse.internalServerError
         }
     }
 }

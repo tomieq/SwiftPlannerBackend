@@ -52,7 +52,7 @@ class ScheduleEngine {
         }
         
         self.possibleModels = []
-        Logger.info("Finished", "Worked finished with planned \(self.bestModel.scheduledDaysAmount) days")
+        Logger.info("Finished", "Worker finished with planned \(self.bestModel.scheduledDaysAmount) days")
     }
     
     private func isSchedulingFinished() -> Bool {
