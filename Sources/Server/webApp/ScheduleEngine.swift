@@ -133,7 +133,11 @@ class ScheduleEngine {
                 if !scheduleDay.isScheduled, scheduleDay.availableUsers.count == 1,
                     let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty,
                     !(self.model.findUser(for: selectedUser)?.wishes.xorLimitationContains(dayNumber: scheduleDay.dayNumber) ?? false) {
-                    self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                    do {
+                        try self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                    } catch {
+                        // some serious problem here
+                    }
                     return
                 }
             }
@@ -149,7 +153,11 @@ class ScheduleEngine {
                     let usersThatCanWorkOnlyHere = scheduleDay.availableUsers.filter { $0.otherWorkplaceIDs.isEmpty }
                     let usersThatWantWork = usersThatCanWorkOnlyHere.filter{ $0.assignmantLevel == .wantedDay }
                     if usersThatWantWork.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
-                        self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                        do {
+                            try self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
+                        } catch {
+                            // some serious problem here
+                        }
                         return
                     }
                 }
@@ -171,13 +179,18 @@ class ScheduleEngine {
                         let possibleModel = ModelBuilder.copy(model: self.model, withVersionNumber: self.possibleModelCounter)
 
                         Logger.debug("ModelPreparation", "START model ver.\(possibleModel.versionNumber)")
-                        possibleModel.assign(user: user, on: scheduleDay.dayNumber, to: workplace)
+                        do {
+                            try possibleModel.assign(user: user, on: scheduleDay.dayNumber, to: workplace)
+                            self.assignModelIfTheBest(model: possibleModel)
+                            if possibleModel.daysLeftToPlan > 0 {
+                                self.possibleModels.append(possibleModel)
+                            }
+                        } catch {
+                            // some serious problem here
+                        }
                         Logger.debug("ModelPreparation", "END model ver.\(possibleModel.versionNumber)")
                         
-                        self.assignModelIfTheBest(model: possibleModel)
-                        if possibleModel.daysLeftToPlan > 0 {
-                            self.possibleModels.append(possibleModel)
-                        }
+                        
                     }
                 }
             }

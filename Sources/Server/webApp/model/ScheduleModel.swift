@@ -47,15 +47,20 @@ class ScheduleModel: Codable {
         self.scheduledDaysAmount = scheduledDaysAmount
     }
     
-    func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) {
+    func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) throws {
         if let userInModel = (self.users.filter { $0.id == user.id }.first) {
-            Logger.info("Assigment" ,"Assigned \(user.name) to work on \(dayNumber.ordinal) in \(workplace.name).")
             
             // assign that user to selected workplace in particular day
-            let scheduledDay = self.workplaces.filter { $0.id == workplace.id }.first?.scheduleDays.filter { $0.dayNumber == dayNumber }.first
-            scheduledDay?.selectedUser = user
-            scheduledDay?.availableUsers = [] // clear all possibilities
-            
+            do {
+                try self.workplaces.filter { $0.id == workplace.id }
+                .first?.scheduleDays
+                .filter { $0.dayNumber == dayNumber }
+                .first?.assign(user: user)
+                Logger.info("Assigment" ,"Assigned \(user.name) to work on \(dayNumber.ordinal) in \(workplace.name).")
+            } catch {
+                Logger.error("AssigmentError", error.localizedDescription)
+                throw error
+            }
             userInModel.maxWorkingDays = userInModel.maxWorkingDays - 1
             if userInModel.maxWorkingDays == 0 {
                 Logger.info("Exclusion" ,"User \(user.name) has reached his limit of working days.")
