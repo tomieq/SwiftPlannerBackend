@@ -54,24 +54,3 @@ struct SampleDto: Encodable {
     let id: Int
     let name: String
 }
-
-extension Encodable {
-
-    func asValidRsponse() -> HttpResponse {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return HttpResponse.ok(HttpResponseBody.data(jsonData, contentType: "application/json"))
-        } catch {
-            return HttpResponse.internalServerError
-        }
-    }
-
-    func asInvalidRsponse() -> HttpResponse {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return HttpResponse.badRequest(HttpResponseBody.data(jsonData, contentType: "application/json"))
-        } catch {
-            return HttpResponse.internalServerError
-        }
-    }
-}
