@@ -1,0 +1,1 @@
+docker run -d -p 5100:5100  --restart unless-stopped swift-planner-backend
