@@ -105,6 +105,32 @@ class ScheduleModel: Codable {
                     }
                 }
             }
+            // check if assigned day is in user's wish alternatives
+            for dayAlternative in userInModel.wishes.dayAlternatives {
+                if dayAlternative.contains(dayNumber: dayNumber) {
+                    for rule in dayAlternative.rules {
+                        if rule.dayList.contains(dayNumber) {
+
+                            rule.dayLimit = rule.dayLimit - 1
+                            rule.dayList = rule.dayList.filter { $0 != dayNumber }
+                            
+                            if rule.dayLimit == 0 {
+                                for dayToRemove in rule.dayList {
+                                    self.markUserCanNotWorkOn(dayNumber: dayToRemove, user: userInModel)
+                                }
+                                rule.dayList = []
+                            }
+                            
+                        } else {
+                            for dayToRemove in rule.dayList {
+                                self.markUserCanNotWorkOn(dayNumber: dayToRemove, user: userInModel)
+                            }
+                            rule.dayList = []
+                        }
+                    }
+                    dayAlternative.rules = dayAlternative.rules.filter { $0.dayList.count > 0 }
+                }
+            }
             
             
             self.updateModelStats()
@@ -145,6 +171,10 @@ class ScheduleModel: Codable {
         // remove user's possible days from previous, current and day after day [user tree]
         user.wantedDayNumbers = user.wantedDayNumbers.filter { dayNumber != $0 }
         user.possibleDayNumbers = user.possibleDayNumbers.filter { dayNumber != $0 }
+    }
+    
+    func findUser(for user: ScheduleUser) -> User? {
+        return self.users.filter { $0.id == user.id }.first
     }
 }
 
@@ -239,6 +269,17 @@ class UserWishes: Codable {
         self.customDayLimits = customDayLimits
         self.dayAlternatives = dayAlternatives
     }
+    
+    func alternativeContains(dayNumber: Int) -> Bool {
+        for alternative in self.dayAlternatives {
+            for rule in alternative.rules {
+                if rule.dayList.contains(dayNumber) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
 }
 
 class UserDayLimitation: Codable {
@@ -256,5 +297,14 @@ class UserDayAlternative: Codable {
     
     init(rules: [UserDayLimitation]) {
         self.rules = rules
+    }
+    
+    func contains(dayNumber: Int) -> Bool {
+        for rule in self.rules {
+            if rule.dayList.contains(dayNumber) {
+                return true
+            }
+        }
+        return false
     }
 }

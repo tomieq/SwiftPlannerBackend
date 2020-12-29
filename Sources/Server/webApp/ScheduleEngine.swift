@@ -17,6 +17,8 @@ class ScheduleEngine {
     private var possibleModels: [ScheduleModel]
     private var possibleModelCounter = 1
     
+    private var bestScoreHits = 0
+    
     private let maxPlannedDays: Int
     
     init(model: ScheduleModel) {
@@ -49,6 +51,7 @@ class ScheduleEngine {
             self.startPlanningWithAssumtions()
         }
         
+        self.possibleModels = []
         Logger.info("Finished", "Worked finished with planned \(self.model.plannedDays) days")
     }
     
@@ -71,6 +74,10 @@ class ScheduleEngine {
                 if self.bestModel.plannedDays == self.maxPlannedDays {
                     return
                 }
+                
+                if self.bestScoreHits > 400 {
+                    return
+                }
             }
             self.possibleModels.remove(object: self.model)
         }
@@ -82,6 +89,9 @@ class ScheduleEngine {
         // in future respect scoring metrics
         if model.plannedDays > self.bestModel.plannedDays {
             self.bestModel = model
+            self.bestScoreHits = 0
+        } else if self.model.plannedDays == self.bestModel.plannedDays {
+            self.bestScoreHits = self.bestScoreHits + 1
         }
     }
     
@@ -116,10 +126,13 @@ class ScheduleEngine {
     
     // funkcja szuka kandydatów, którzy jako jedyni zgłosili się do pracy danego dnia w tym miejscu pracy i mogą pracować tylko
     // i wyłącznie w tym miejscu pracy
+    // i dzień nie uczestniczy w życzeniach or(alternatywnych)
     private func assignSingleCandidates() {
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
-                if scheduleDay.selectedUser == nil, scheduleDay.availableUsers.count == 1, let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty {
+                if scheduleDay.selectedUser == nil, scheduleDay.availableUsers.count == 1,
+                    let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty,
+                    !(self.model.findUser(for: selectedUser)?.wishes.alternativeContains(dayNumber: scheduleDay.dayNumber) ?? false) {
                     self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
                     return
                 }
