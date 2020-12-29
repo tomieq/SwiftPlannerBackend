@@ -10,10 +10,6 @@ import Foundation
 class WebApplication {
     
     init(_ server: HttpServer) {
-        server["/json"] = { request in
-            return SampleDto(id: 22, name: "janek").asInvalidRsponse()
-            
-        }
 
         server["/planning"] = { [weak self] request in
             
@@ -46,11 +42,4 @@ class WebApplication {
             return HttpResponse.internalServerError
         }
     }
-}
-
-
-
-struct SampleDto: Encodable {
-    let id: Int
-    let name: String
 }
