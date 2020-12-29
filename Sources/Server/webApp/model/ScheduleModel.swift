@@ -47,6 +47,16 @@ class ScheduleModel: Codable {
         self.scheduledDaysAmount = scheduledDaysAmount
     }
     
+    private func updateOtherUserPossibilitiesAfterAssignment(on dayNumber: Int, in workplace: ScheduleWorkplace) {
+        // mark users with possibilities on the same day that they don't have to work in this place any more
+        for workplaceItem in self.workplaces {
+            workplaceItem.scheduleDays.filter { $0.dayNumber == dayNumber }.first?
+                .availableUsers.forEach { availableUser in
+                availableUser.otherWorkplaceIDs = availableUser.otherWorkplaceIDs.filter { $0 != workplace.id }
+            }
+        }
+    }
+    
     func assign(user: ScheduleUser, on dayNumber: Int, to workplace: ScheduleWorkplace) throws {
         if let userInModel = (self.users.filter { $0.id == user.id }.first) {
             
@@ -65,17 +75,19 @@ class ScheduleModel: Codable {
             if userInModel.maxWorkingDays == 0 {
                 Logger.info("Exclusion" ,"User \(user.name) has reached his limit of working days.")
                 self.remove(user: user)
-            } else {
-                self.markUserCanNotWorkOn(dayNumber: dayNumber, user: userInModel)
+                self.updateOtherUserPossibilitiesAfterAssignment(on: dayNumber, in: workplace)
+                self.updateModelStats()
+                return
             }
             
+
             // remove user's possible days from previous, current and day after day [workplace tree]
             let daysToClean = [dayNumber - 1, dayNumber, dayNumber + 1]
             for dayToClean in daysToClean {
                 self.markUserCanNotWorkOn(dayNumber: dayToClean, user: userInModel)
             }
             
-            // check if there are any possible days left
+            // check if user can be assigned on any other day
             var numberOfPossibleDays = 0
             for workplace in self.workplaces {
                 for scheduleDay in workplace.scheduleDays {
@@ -85,35 +97,31 @@ class ScheduleModel: Codable {
             if numberOfPossibleDays == 0 {
                 Logger.info("Exclusion" ,"User \(user.name) has no more possible days to work.")
                 self.remove(user: user)
+                self.updateOtherUserPossibilitiesAfterAssignment(on: dayNumber, in: workplace)
+                self.updateModelStats()
+                return
             }
             
-            
-            // mark users with possibilities on the same day that they don't have to work in this place any more
-            for workplaceItem in self.workplaces {
-                workplaceItem.scheduleDays.filter { $0.dayNumber == dayNumber }.first?.availableUsers.forEach { availableUser in
-                    availableUser.otherWorkplaceIDs = availableUser.otherWorkplaceIDs.filter { $0 != workplace.id }
-                }
-            }
             
             // check if assigned day is in user's wish limitations
-            for dayLimitation in userInModel.wishes.workingDayLimitations {
-                if dayLimitation.dayNumbers.contains(dayNumber) {
-                    dayLimitation.dayLimit = dayLimitation.dayLimit - 1
-                    dayLimitation.dayNumbers = dayLimitation.dayNumbers.filter { $0 != dayNumber }
+            for limitation in userInModel.wishes.workingDayLimitations {
+                if limitation.dayNumbers.contains(dayNumber) {
+                    limitation.dayLimit = limitation.dayLimit - 1
+                    limitation.dayNumbers = limitation.dayNumbers.filter { $0 != dayNumber }
                     
                     // jeśli limit został wyczerpany, usuń użytkownika z list availableUsers
-                    if dayLimitation.dayLimit == 0 {
-                        for dayToRemove in dayLimitation.dayNumbers {
+                    if limitation.dayLimit == 0 {
+                        for dayToRemove in limitation.dayNumbers {
                             self.markUserCanNotWorkOn(dayNumber: dayToRemove, user: userInModel)
                         }
-                        dayLimitation.dayNumbers = []
+                        limitation.dayNumbers = []
                     }
                 }
             }
             // check if assigned day is in user's wish alternatives
-            for dayAlternative in userInModel.wishes.workindDayXorLimitations {
-                if dayAlternative.contains(dayNumber: dayNumber) {
-                    for rule in dayAlternative.rules {
+            for xorLimitation in userInModel.wishes.workindDayXorLimitations {
+                if xorLimitation.contains(dayNumber: dayNumber) {
+                    for rule in xorLimitation.rules {
                         if rule.dayNumbers.contains(dayNumber) {
 
                             rule.dayLimit = rule.dayLimit - 1
@@ -133,12 +141,13 @@ class ScheduleModel: Codable {
                             rule.dayNumbers = []
                         }
                     }
-                    dayAlternative.rules = dayAlternative.rules.filter { $0.dayNumbers.count > 0 }
+                    xorLimitation.rules = xorLimitation.rules.filter { $0.dayNumbers.count > 0 }
                 }
             }
-            
-            
+            self.updateOtherUserPossibilitiesAfterAssignment(on: dayNumber, in: workplace)
             self.updateModelStats()
+            
+            
             Logger.debug("Stats", "Planned \(self.scheduledDaysAmount) days and \(self.daysLeftToPlan) days still can be planned")
             
             //print("ScheduleModel = \(self.debugDescription)")
@@ -175,7 +184,9 @@ class ScheduleModel: Codable {
         }
         user.wantedDayNumbers = user.wantedDayNumbers.filter { dayNumber != $0 }
         user.possibleDayNumbers = user.possibleDayNumbers.filter { dayNumber != $0 }
+
     }
+    
     
     func findUser(for user: ScheduleUser) -> User? {
         return self.users.filter { $0.id == user.id }.first
