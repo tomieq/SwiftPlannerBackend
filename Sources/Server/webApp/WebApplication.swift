@@ -11,10 +11,12 @@ class WebApplication {
     
     init(_ server: HttpServer) {
 
-        server["/planning"] = { request in
+        server.POST["/planning"] = { request in
             
-            //Logger.debug("Incoming body", request.bodyString ?? "")
-        
+            guard let bodyString = request.bodyString, !bodyString.isEmpty else {
+                Logger.error("Input data", "Empty request body")
+                return .badRequest(nil)
+            }
             
             do {
                 let inputDto = try JSONDecoder().decode(InputDto.self, from: Data(request.bodyString!.utf8))
@@ -36,7 +38,8 @@ class WebApplication {
                 //Logger.debug("Outcoming body", outputDto.debugDescription)
                 return outputDto.asValidRsponse()
             } catch let error {
-                print("Error deserializing data \(error.localizedDescription)")
+                Logger.debug("Incoming body", bodyString)
+                Logger.error("Input data", "Problem with deserializing the data \(error.localizedDescription)")
                 return HttpResponse.badRequest(.text(error.localizedDescription))
             }
         }
