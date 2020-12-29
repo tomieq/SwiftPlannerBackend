@@ -17,4 +17,8 @@ class ScheduleDay: Codable {
         self.availableUsers = availableUsers
         self.selectedUser = selectedUser
     }
+    
+    var isScheduled: Bool {
+        return self.selectedUser != nil
+    }
 }

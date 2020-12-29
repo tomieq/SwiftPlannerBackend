@@ -130,7 +130,7 @@ class ScheduleEngine {
     private func assignSingleCandidates() {
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
-                if scheduleDay.selectedUser == nil, scheduleDay.availableUsers.count == 1,
+                if !scheduleDay.isScheduled, scheduleDay.availableUsers.count == 1,
                     let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty,
                     !(self.model.findUser(for: selectedUser)?.wishes.xorLimitationContains(dayNumber: scheduleDay.dayNumber) ?? false) {
                     self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
@@ -145,7 +145,7 @@ class ScheduleEngine {
     func assignCandidateThatCanWorkOnlyHere() {
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
-                if scheduleDay.selectedUser == nil, !scheduleDay.availableUsers.isEmpty {
+                if !scheduleDay.isScheduled, !scheduleDay.availableUsers.isEmpty {
                     let usersThatCanWorkOnlyHere = scheduleDay.availableUsers.filter { $0.otherWorkplaceIDs.isEmpty }
                     let usersThatWantWork = usersThatCanWorkOnlyHere.filter{ $0.assignmantLevel == .wantedDay }
                     if usersThatWantWork.count == 1, let selectedUser = usersThatCanWorkOnlyHere.first {
