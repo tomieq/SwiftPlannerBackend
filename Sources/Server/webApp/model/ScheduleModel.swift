@@ -168,7 +168,6 @@ class ScheduleModel: Codable {
                 scheduleDay.availableUsers = scheduleDay.availableUsers.filter { $0.id != user.id }
             }
         }
-        // remove user's possible days from previous, current and day after day [user tree]
         user.wantedDayNumbers = user.wantedDayNumbers.filter { dayNumber != $0 }
         user.possibleDayNumbers = user.possibleDayNumbers.filter { dayNumber != $0 }
     }
@@ -192,119 +191,5 @@ extension ScheduleModel: CustomDebugStringConvertible {
 extension ScheduleModel: Equatable {
     static func == (lhs: ScheduleModel, rhs: ScheduleModel) -> Bool {
         return lhs.versionNumber == rhs.versionNumber
-    }
-}
-
-class ScheduleWorkplace: Codable {
-    let id: Int
-    let name: String
-    let scheduleDays: [ScheduleDay]
-    
-    init(id: Int, name: String, scheduleDays: [ScheduleDay]) {
-        self.id = id
-        self.name = name
-        self.scheduleDays = scheduleDays
-    }
-}
-
-class ScheduleDay: Codable {
-    let dayNumber: Int
-    var selectedUser: ScheduleUser?
-    var availableUsers: [ScheduleUser]
-    
-    init(dayNumber: Int, availableUsers: [ScheduleUser], selectedUser: ScheduleUser? = nil) {
-        self.dayNumber = dayNumber
-        self.availableUsers = availableUsers
-        self.selectedUser = selectedUser
-    }
-}
-
-class ScheduleUser: Codable {
-    let id: Int
-    let name: String
-    let workplacePriority: Int
-    let assignmantLevel: AssignmaneLevel
-    var otherWorkplaceIDs: [Int]
-    
-    init(id: Int, name: String, workplacePriority: Int, assignmantLevel: AssignmaneLevel, otherWorkplaceIDs: [Int]) {
-        self.id = id
-        self.name = name
-        self.workplacePriority = workplacePriority
-        self.assignmantLevel = assignmantLevel
-        self.otherWorkplaceIDs = otherWorkplaceIDs
-    }
-}
-
-enum AssignmaneLevel: String, Codable {
-    case wantedDay
-    case possibleDay
-}
-
-
-class User: Codable {
-    let id: Int
-    let name: String
-    var wantedDayNumbers: [Int]
-    var possibleDayNumbers: [Int]
-    let workPlaceIDs: [Int]
-    var maxWorkingDays: Int
-    var wishes: UserWishes
-    
-    init(id: Int, name: String, wantedDayNumbers: [Int], possibleDayNumbers: [Int], workPlaceIDs: [Int], wishes: UserWishes, maxWorkingDays: Int) {
-        self.id = id
-        self.name = name
-        self.wantedDayNumbers = wantedDayNumbers
-        self.possibleDayNumbers = possibleDayNumbers
-        self.workPlaceIDs = workPlaceIDs
-        self.wishes = wishes
-        self.maxWorkingDays = maxWorkingDays
-    }
-}
-
-class UserWishes: Codable {
-    var workingDayLimitations: [UserWorkLimitation]
-    var workindDayXorLimitations: [UserWorkXorLimitation]
-    
-    init(workingDayLimitations: [UserWorkLimitation], workindDayXorLimitations: [UserWorkXorLimitation]) {
-        self.workingDayLimitations = workingDayLimitations
-        self.workindDayXorLimitations = workindDayXorLimitations
-    }
-    
-    func xorLimitationContains(dayNumber: Int) -> Bool {
-        for alternative in self.workindDayXorLimitations {
-            for rule in alternative.rules {
-                if rule.dayNumbers.contains(dayNumber) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-}
-
-class UserWorkLimitation: Codable {
-    var dayLimit: Int
-    var dayNumbers: [Int]
-    
-    init(dayLimit: Int, dayList: [Int]) {
-        self.dayLimit = dayLimit
-        self.dayNumbers = dayList
-    }
-}
-
-class UserWorkXorLimitation: Codable {
-    var rules: [UserWorkLimitation]
-    
-    init(rules: [UserWorkLimitation]) {
-        self.rules = rules
-    }
-    
-    func contains(dayNumber: Int) -> Bool {
-        for rule in self.rules {
-            if rule.dayNumbers.contains(dayNumber) {
-                return true
-            }
-        }
-        return false
     }
 }
