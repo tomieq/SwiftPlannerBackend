@@ -118,7 +118,7 @@ class ModelBuilder {
             }
             return ScheduleWorkplaceSnapshot(id: workplace.id, name: workplace.name, scheduleDays: days)
         }
-        return ScheduleModelSnapshot(versionNumber: model.versionNumber, plannedDays: model.plannedDays, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces)
+        return ScheduleModelSnapshot(versionNumber: model.versionNumber, scheduledDaysAmount: model.scheduledDaysAmount, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces)
     }
     
     static func makeModel(versionNumber: Int, from snapshot: ScheduleModelSnapshot) -> ScheduleModel {

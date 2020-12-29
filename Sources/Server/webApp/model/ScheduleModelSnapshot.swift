@@ -9,7 +9,7 @@ import Foundation
 
 struct ScheduleModelSnapshot {
     let versionNumber: Int
-    let plannedDays: Int
+    let scheduledDaysAmount: Int
     let daysLeftToPlan: Int
     let users: [UserSnapshot]
     let workplaces: [ScheduleWorkplaceSnapshot]

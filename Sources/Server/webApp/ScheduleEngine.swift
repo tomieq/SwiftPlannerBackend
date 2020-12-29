@@ -52,7 +52,7 @@ class ScheduleEngine {
         }
         
         self.possibleModels = []
-        Logger.info("Finished", "Worked finished with planned \(self.model.plannedDays) days")
+        Logger.info("Finished", "Worked finished with planned \(self.model.scheduledDaysAmount) days")
     }
     
     private func startPlanningWithAssumtions() {
@@ -65,13 +65,13 @@ class ScheduleEngine {
             self.assignModelIfTheBest(model: self.model)
             
             // jeśli zaplanowano wszystko, zakończ
-            if self.model.plannedDays == self.maxPlannedDays {
+            if self.model.scheduledDaysAmount == self.maxPlannedDays {
                 return
             }
             if self.model.daysLeftToPlan > 0 {
                 self.makePossibleModels()
                 
-                if self.bestModel.plannedDays == self.maxPlannedDays {
+                if self.bestModel.scheduledDaysAmount == self.maxPlannedDays {
                     return
                 }
                 
@@ -87,10 +87,10 @@ class ScheduleEngine {
     private func assignModelIfTheBest(model: ScheduleModel) {
         
         // in future respect scoring metrics
-        if model.plannedDays > self.bestModel.plannedDays {
+        if model.scheduledDaysAmount > self.bestModel.scheduledDaysAmount {
             self.bestModel = model
             self.bestScoreHits = 0
-        } else if self.model.plannedDays == self.bestModel.plannedDays {
+        } else if self.model.scheduledDaysAmount == self.bestModel.scheduledDaysAmount {
             self.bestScoreHits = self.bestScoreHits + 1
         }
     }
@@ -98,10 +98,10 @@ class ScheduleEngine {
     private func runSimpleAssignAlgorithmsUntilNoProgress() {
         
         while self.model.daysLeftToPlan > 0 {
-            let plannedDaysBefore = model.plannedDays
+            let plannedDaysBefore = model.scheduledDaysAmount
             Logger.debug("", "...starting all algorithms")
             self.runSimpleAssignAlgorithms()
-            let plannedDaysAfter = model.plannedDays
+            let plannedDaysAfter = model.scheduledDaysAmount
             if plannedDaysBefore == plannedDaysAfter { break }
         }
     }
@@ -109,17 +109,17 @@ class ScheduleEngine {
     private func runSimpleAssignAlgorithms() {
 
         while self.model.daysLeftToPlan > 0 {
-            let plannedDaysBefore = model.plannedDays
+            let plannedDaysBefore = model.scheduledDaysAmount
             Logger.debug("", "......starting assignSingleCandidates()")
             self.assignSingleCandidates()
-            let plannedDaysAfter = model.plannedDays
+            let plannedDaysAfter = model.scheduledDaysAmount
             if plannedDaysBefore == plannedDaysAfter { break }
         }
         while self.model.daysLeftToPlan > 0 {
-            let plannedDaysBefore = model.plannedDays
+            let plannedDaysBefore = model.scheduledDaysAmount
             Logger.debug("", "......starting assignCandidateThatCanWorkOnlyHere()")
             self.assignCandidateThatCanWorkOnlyHere()
-            let plannedDaysAfter = model.plannedDays
+            let plannedDaysAfter = model.scheduledDaysAmount
             if plannedDaysBefore == plannedDaysAfter { break }
         }
     }
