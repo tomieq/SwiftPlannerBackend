@@ -99,10 +99,10 @@ class ScheduleEngine {
     private func assignModelIfTheBest(model: ScheduleModel) {
         
         // in future respect scoring metrics
-        if model.score.scheduledDays > self.bestModel.score.scheduledDays {
+        if model.score > self.bestModel.score {
             self.bestModel = model
             self.bestScoreHits = 0
-        } else if self.model.score.scheduledDays == self.bestModel.score.scheduledDays {
+        } else if self.model.score == self.bestModel.score {
             self.bestScoreHits = self.bestScoreHits + 1
         }
     }
