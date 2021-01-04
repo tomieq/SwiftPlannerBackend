@@ -144,7 +144,8 @@ class ScheduleEngine {
             for scheduleDay in workplace.scheduleDays {
                 if !scheduleDay.isScheduled, scheduleDay.availableUsers.count == 1,
                     let selectedUser = scheduleDay.availableUsers.first, selectedUser.otherWorkplaceIDs.isEmpty,
-                    !(self.model.findUser(for: selectedUser)?.wishes.xorLimitationContains(dayNumber: scheduleDay.dayNumber) ?? false) {
+                    let fullUser = self.model.findUser(for: selectedUser),
+                    !(fullUser.wishes.xorLimitationContains(dayNumber: scheduleDay.dayNumber)) {
                     do {
                         try self.model.assign(user: selectedUser, on: scheduleDay.dayNumber, to: workplace)
                     } catch {
