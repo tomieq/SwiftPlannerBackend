@@ -70,7 +70,8 @@ class ModelBuilder {
             return User(id: user.id ?? 0, name: user.name ?? "unknown", wantedDayNumbers: user.wantedDays ?? [], possibleDayNumbers: user.possibleDays ?? [], workPlaceIDs: user.allowedWorkplaceIDs ?? [], wishes: wishes, maxWorkingDays: user.maxWorkingDays ?? 0)
             
             } ?? []
-        let scheduleModel = ScheduleModel(versionNumber: 1, workplaces: workplaces, users: users)
+        let score = ScoreModel(preferredDays: 0)
+        let scheduleModel = ScheduleModel(versionNumber: 1, workplaces: workplaces, users: users, score: score)
         return scheduleModel
     }
     
@@ -127,7 +128,8 @@ class ModelBuilder {
             }
             return ScheduleWorkplaceSnapshot(id: workplace.id, name: workplace.name, scheduleDays: days)
         }
-        return ScheduleModelSnapshot(versionNumber: model.versionNumber, scheduledDaysAmount: model.scheduledDaysAmount, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces)
+        let score = ScoreModelSnapshot(preferredDays: model.score.preferredDays)
+        return ScheduleModelSnapshot(versionNumber: model.versionNumber, scheduledDaysAmount: model.scheduledDaysAmount, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces, score: score)
     }
     
     static func makeModel(versionNumber: Int, from snapshot: ScheduleModelSnapshot) -> ScheduleModel {
@@ -153,7 +155,8 @@ class ModelBuilder {
             let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
             return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, wishes: wishes, maxWorkingDays: u.maxWorkingDays)
         }
-        return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users)
+        let score = ScoreModel(preferredDays: snapshot.score.preferredDays)
+        return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users, score: score)
     }
     
     static func copy(model: ScheduleModel, withVersionNumber versionNumber: Int) -> ScheduleModel {

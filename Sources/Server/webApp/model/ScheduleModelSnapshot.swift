@@ -13,6 +13,7 @@ struct ScheduleModelSnapshot {
     let daysLeftToPlan: Int
     let users: [UserSnapshot]
     let workplaces: [ScheduleWorkplaceSnapshot]
+    let score: ScoreModelSnapshot
 }
 
 struct ScheduleWorkplaceSnapshot {
@@ -58,4 +59,8 @@ struct UserWorkLimitationSnapshot {
 
 struct UserWorkXorLimitationSnapshot {
     var rules: [UserWorkLimitationSnapshot]
+}
+
+struct ScoreModelSnapshot {
+    let preferredDays: Int
 }

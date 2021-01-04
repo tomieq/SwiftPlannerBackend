@@ -14,11 +14,13 @@ class ScheduleModel: Codable {
     var daysLeftToPlan: Int = 0
     var users: [User]
     let workplaces: [ScheduleWorkplace]
+    let score: ScoreModel
     
-    init(versionNumber: Int, workplaces: [ScheduleWorkplace], users: [User]) {
+    init(versionNumber: Int, workplaces: [ScheduleWorkplace], users: [User], score: ScoreModel) {
         self.versionNumber = versionNumber
         self.workplaces = workplaces
         self.users = users
+        self.score = score
         self.updateModelStats()
     }
     
