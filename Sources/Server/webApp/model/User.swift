@@ -25,4 +25,14 @@ class User: Codable {
         self.wishes = wishes
         self.maxWorkingDays = maxWorkingDays
     }
+    
+    init(from snapshot: UserSnapshot) {
+        self.id = snapshot.id
+        self.name = snapshot.name
+        self.wantedDayNumbers = snapshot.wantedDayNumbers
+        self.possibleDayNumbers = snapshot.possibleDayNumbers
+        self.workPlaceIDs = snapshot.workPlaceIDs
+        self.maxWorkingDays = snapshot.maxWorkingDays
+        self.wishes = UserWishes(from: snapshot.wishes)
+    }
 }

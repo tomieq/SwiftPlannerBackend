@@ -122,15 +122,7 @@ class ModelBuilder {
     
     static func makeModel(versionNumber: Int, from snapshot: ScheduleModelSnapshot) -> ScheduleModel {
         let workplaces: [ScheduleWorkplace] = snapshot.workplaces.map { ScheduleWorkplace(from: $0) }
-        let users: [User] = snapshot.users.map { u in
-            let workingDayLimitations: [UserWorkLimitation] = u.wishes.workingDayLimitations.map { UserWorkLimitation(from: $0) }
-            let workindDayXorLimitations: [UserWorkXorLimitation] = u.wishes.workindDayXorLimitations.map { dayAlternative in
-                let rules: [UserWorkLimitation] = dayAlternative.rules.compactMap { UserWorkLimitation(from: $0) }
-                return UserWorkXorLimitation(rules: rules)
-            }
-            let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
-            return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, wishes: wishes, maxWorkingDays: u.maxWorkingDays)
-        }
+        let users: [User] = snapshot.users.map { User(from: $0) }
         let score = ScoreModel(from: snapshot.score)
         return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users, score: score)
     }

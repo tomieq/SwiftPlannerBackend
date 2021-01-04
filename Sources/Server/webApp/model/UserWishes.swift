@@ -16,6 +16,11 @@ class UserWishes: Codable {
         self.workindDayXorLimitations = workindDayXorLimitations
     }
     
+    init(from snapshot: UserWishesSnapshot) {
+        self.workingDayLimitations = snapshot.workingDayLimitations.map { UserWorkLimitation(from: $0) }
+        self.workindDayXorLimitations = snapshot.workindDayXorLimitations.map { UserWorkXorLimitation(from: $0) }
+    }
+    
     func xorLimitationContains(dayNumber: Int) -> Bool {
         for alternative in self.workindDayXorLimitations {
             for rule in alternative.rules {

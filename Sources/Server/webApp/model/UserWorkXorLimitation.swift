@@ -14,6 +14,10 @@ class UserWorkXorLimitation: Codable {
         self.rules = rules
     }
     
+    init(from snapshot: UserWorkXorLimitationSnapshot) {
+        self.rules = snapshot.rules.map { UserWorkLimitation(from: $0) }
+    }
+    
     func contains(dayNumber: Int) -> Bool {
         for rule in self.rules {
             if rule.dayNumbers.contains(dayNumber) {
