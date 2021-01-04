@@ -45,24 +45,12 @@ class ModelBuilder {
         
         let users: [User] = dto.users?.map { user in
             let workingDayLimitations: [UserWorkLimitation] = user.wishes?.filter { $0.type == .and }
-                .compactMap { wishDto in
-                    guard let dayNumbers = wishDto.days, let amount = wishDto.amount else {
-                        Logger.warning("Input data", "Wish `and` for user \(user.name ?? "unknown") is corrupted")
-                        return nil
-                    }
-                    return UserWorkLimitation(dayLimit: amount, dayNumbers: dayNumbers)
-                } ?? []
+                .compactMap { UserWorkLimitation(from: $0) } ?? []
             
             
             let workindDayXorLimitations: [UserWorkXorLimitation] = user.wishes?.filter { $0.type == .or }
                 .map { wishDto in
-                    let rules: [UserWorkLimitation] = wishDto.rules?.compactMap { rule in
-                        guard let dayNumbers = rule.days, let amount = rule.amount else {
-                            Logger.warning("Input data", "Wish `or` for user \(user.name ?? "unknown") is corrupted")
-                            return nil
-                        }
-                        return UserWorkLimitation(dayLimit: amount, dayNumbers: dayNumbers)
-                    } ?? []
+                    let rules: [UserWorkLimitation] = wishDto.rules?.compactMap { UserWorkLimitation(from: $0) } ?? []
                 return UserWorkXorLimitation(rules: rules)
             } ?? []
         
@@ -147,9 +135,9 @@ class ModelBuilder {
             return ScheduleWorkplace(id: workplace.id, name: workplace.name, scheduleDays: scheduleDays)
         }
         let users: [User] = snapshot.users.map { u in
-            let workingDayLimitations: [UserWorkLimitation] = u.wishes.workingDayLimitations.map { UserWorkLimitation(dayLimit: $0.dayLimit, dayNumbers: $0.dayNumbers) }
+            let workingDayLimitations: [UserWorkLimitation] = u.wishes.workingDayLimitations.map { UserWorkLimitation(from: $0) }
             let workindDayXorLimitations: [UserWorkXorLimitation] = u.wishes.workindDayXorLimitations.map { dayAlternative in
-                let rules: [UserWorkLimitation] = dayAlternative.rules.map { UserWorkLimitation(dayLimit: $0.dayLimit, dayNumbers: $0.dayNumbers) }
+                let rules: [UserWorkLimitation] = dayAlternative.rules.compactMap { UserWorkLimitation(from: $0) }
                 return UserWorkXorLimitation(rules: rules)
             }
             let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
