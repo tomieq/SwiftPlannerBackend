@@ -10,6 +10,7 @@ import Foundation
 class UserWorkLimitation: Codable {
     var dayLimit: Int
     var dayNumbers: [Int]
+    var scorePoints: Int
     
     init?(from dto: WishDto) {
         guard let dayLimit = dto.amount, let dayNumbers = dto.days else {
@@ -17,6 +18,7 @@ class UserWorkLimitation: Codable {
         }
         self.dayLimit = dayLimit
         self.dayNumbers = dayNumbers
+        self.scorePoints = self.dayLimit == 1 ? 1 : 0
     }
     
     init?(from dto: WishRuleDto) {
@@ -25,10 +27,12 @@ class UserWorkLimitation: Codable {
         }
         self.dayLimit = dayLimit
         self.dayNumbers = dayNumbers
+        self.scorePoints = 0
     }
     
     init(from snapshot: UserWorkLimitationSnapshot) {
         self.dayLimit = snapshot.dayLimit
         self.dayNumbers = snapshot.dayNumbers
+        self.scorePoints = snapshot.scorePoints
     }
 }

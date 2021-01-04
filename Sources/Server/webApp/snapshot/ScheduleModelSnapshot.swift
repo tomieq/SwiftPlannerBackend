@@ -92,10 +92,12 @@ struct UserWishesSnapshot {
 struct UserWorkLimitationSnapshot {
     let dayLimit: Int
     let dayNumbers: [Int]
+    var scorePoints: Int
     
     init(from model: UserWorkLimitation) {
         self.dayLimit = model.dayLimit
         self.dayNumbers = model.dayNumbers
+        self.scorePoints = model.scorePoints
     }
 }
 

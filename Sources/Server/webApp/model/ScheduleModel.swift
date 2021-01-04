@@ -72,6 +72,7 @@ class ScheduleModel: Codable {
                 Logger.error("AssigmentError", error.localizedDescription)
                 throw error
             }
+            self.score.preferredDays = self.score.preferredDays + userInModel.scorePoints(on: dayNumber)
             userInModel.maxWorkingDays = userInModel.maxWorkingDays - 1
             if userInModel.maxWorkingDays == 0 {
                 Logger.info("Exclusion" ,"User \(user.name) has reached his limit of working days.")
@@ -109,6 +110,7 @@ class ScheduleModel: Codable {
                 if limitation.dayNumbers.contains(dayNumber) {
                     limitation.dayLimit = limitation.dayLimit - 1
                     limitation.dayNumbers = limitation.dayNumbers.filter { $0 != dayNumber }
+                    limitation.scorePoints = 0
                     
                     // jeśli limit został wyczerpany, usuń użytkownika z list availableUsers
                     if limitation.dayLimit == 0 {

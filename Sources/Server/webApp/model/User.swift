@@ -35,4 +35,9 @@ class User: Codable {
         self.maxWorkingDays = snapshot.maxWorkingDays
         self.wishes = UserWishes(from: snapshot.wishes)
     }
+    
+    func scorePoints(on dayNumber: Int) -> Int {
+        let sum = self.wishes.workingDayLimitations.map { $0.scorePoints }.reduce(0, +)
+        return sum
+    }
 }
