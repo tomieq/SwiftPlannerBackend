@@ -27,4 +27,15 @@ class ScheduleUser: Codable {
         self.assignmantLevel = assignmantLevel
         self.otherWorkplaceIDs = otherWorkplaceIDs
     }
+    
+    init?(from snapshot: ScheduleUserSnapshot?) {
+        guard let snapshot = snapshot else {
+            return nil
+        }
+        self.id = snapshot.id
+        self.name = snapshot.name
+        self.workplacePriority = snapshot.workplacePriority
+        self.assignmantLevel = snapshot.assignmantLevel
+        self.otherWorkplaceIDs = snapshot.otherWorkplaceIDs
+    }
 }

@@ -123,13 +123,8 @@ class ModelBuilder {
     static func makeModel(versionNumber: Int, from snapshot: ScheduleModelSnapshot) -> ScheduleModel {
         let workplaces: [ScheduleWorkplace] = snapshot.workplaces.map { workplace in
             let scheduleDays: [ScheduleDay] = workplace.scheduleDays.map { scheduleDay in
-                var selectedUser: ScheduleUser? = nil
-                if let u = scheduleDay.selectedUser {
-                    selectedUser = ScheduleUser(id: u.id, name: u.name, workplacePriority: u.workplacePriority, assignmantLevel: u.assignmantLevel, otherWorkplaceIDs: u.otherWorkplaceIDs)
-                }
-                let availableUsers: [ScheduleUser] = scheduleDay.availableUsers.map { u in
-                    return ScheduleUser(id: u.id, name: u.name, workplacePriority: u.workplacePriority, assignmantLevel: u.assignmantLevel, otherWorkplaceIDs: u.otherWorkplaceIDs)
-                }
+                let selectedUser: ScheduleUser? = ScheduleUser(from: scheduleDay.selectedUser)
+                let availableUsers: [ScheduleUser] = scheduleDay.availableUsers.compactMap { ScheduleUser(from: $0) }
                 return ScheduleDay(dayNumber: scheduleDay.dayNumber, availableUsers: availableUsers, selectedUser: selectedUser)
             }
             return ScheduleWorkplace(id: workplace.id, name: workplace.name, scheduleDays: scheduleDays)
