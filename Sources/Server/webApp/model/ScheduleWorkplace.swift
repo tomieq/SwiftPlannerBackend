@@ -17,4 +17,10 @@ class ScheduleWorkplace: Codable {
         self.name = name
         self.scheduleDays = scheduleDays
     }
+    
+    init(from snapshot: ScheduleWorkplaceSnapshot) {
+        self.id = snapshot.id
+        self.name = snapshot.name
+        self.scheduleDays = snapshot.scheduleDays.map { ScheduleDay(from: $0) }
+    }
 }
