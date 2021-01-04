@@ -10,7 +10,6 @@ import Foundation
 class ScheduleModel: Codable {
     
     let versionNumber: Int
-    var scheduledDaysAmount: Int = 0
     var daysLeftToPlan: Int = 0
     var users: [User]
     let workplaces: [ScheduleWorkplace]
@@ -38,15 +37,15 @@ class ScheduleModel: Codable {
            }
            self.daysLeftToPlan = maxToPlan
         }
-        var scheduledDaysAmount = 0
+        var scheduledDays = 0
         for workplace in self.workplaces {
             for scheduleDay in workplace.scheduleDays {
                 if scheduleDay.isScheduled {
-                    scheduledDaysAmount = scheduledDaysAmount + 1
+                    scheduledDays = scheduledDays + 1
                 }
             }
         }
-        self.scheduledDaysAmount = scheduledDaysAmount
+        self.score.scheduledDays = scheduledDays
     }
     
     private func updateOtherUserPossibilitiesAfterAssignment(on dayNumber: Int, in workplace: ScheduleWorkplace) {
@@ -150,7 +149,7 @@ class ScheduleModel: Codable {
             self.updateModelStats()
             
             
-            Logger.debug("Stats", "Planned \(self.scheduledDaysAmount) days and \(self.daysLeftToPlan) days still can be planned")
+            Logger.debug("Stats", "Planned \(self.score.scheduledDays) days and \(self.daysLeftToPlan) days still can be planned")
             
             //print("ScheduleModel = \(self.debugDescription)")
         } else {
