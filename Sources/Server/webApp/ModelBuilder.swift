@@ -70,7 +70,7 @@ class ModelBuilder {
             return User(id: user.id ?? 0, name: user.name ?? "unknown", wantedDayNumbers: user.wantedDays ?? [], possibleDayNumbers: user.possibleDays ?? [], workPlaceIDs: user.allowedWorkplaceIDs ?? [], wishes: wishes, maxWorkingDays: user.maxWorkingDays ?? 0)
             
             } ?? []
-        let score = ScoreModel(scheduledDays: 0, preferredDays: 0)
+        let score = ScoreModel()
         let scheduleModel = ScheduleModel(versionNumber: 1, workplaces: workplaces, users: users, score: score)
         return scheduleModel
     }
@@ -155,7 +155,7 @@ class ModelBuilder {
             let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
             return User(id: u.id, name: u.name, wantedDayNumbers: u.wantedDayNumbers, possibleDayNumbers: u.possibleDayNumbers, workPlaceIDs: u.workPlaceIDs, wishes: wishes, maxWorkingDays: u.maxWorkingDays)
         }
-        let score = ScoreModel(scheduledDays: snapshot.score.scheduledDays, preferredDays: snapshot.score.preferredDays)
+        let score = ScoreModel(from: snapshot.score)
         return ScheduleModel(versionNumber: versionNumber, workplaces: workplaces, users: users, score: score)
     }
     

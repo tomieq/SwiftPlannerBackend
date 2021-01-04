@@ -11,8 +11,13 @@ class ScoreModel: Codable {
     var scheduledDays: Int
     var preferredDays: Int
     
-    init(scheduledDays: Int, preferredDays: Int) {
-        self.scheduledDays = scheduledDays
-        self.preferredDays = preferredDays
+    init() {
+        self.scheduledDays = 0
+        self.preferredDays = 0
+    }
+    
+    init(from snapshot: ScoreModelSnapshot) {
+        self.scheduledDays = snapshot.scheduledDays
+        self.preferredDays = snapshot.preferredDays
     }
 }
