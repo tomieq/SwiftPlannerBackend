@@ -47,11 +47,10 @@ class ModelBuilder {
             let workingDayLimitations: [UserWorkLimitation] = user.wishes?.filter { $0.type == .and }
                 .compactMap { UserWorkLimitation(from: $0) } ?? []
             
-            
             let workindDayXorLimitations: [UserWorkXorLimitation] = user.wishes?.filter { $0.type == .or }
                 .map { wishDto in
                     let rules: [UserWorkLimitation] = wishDto.rules?.compactMap { UserWorkLimitation(from: $0) } ?? []
-                return UserWorkXorLimitation(rules: rules)
+                    return UserWorkXorLimitation(rules: rules)
             } ?? []
         
             let wishes = UserWishes(workingDayLimitations: workingDayLimitations, workindDayXorLimitations: workindDayXorLimitations)
@@ -91,32 +90,9 @@ class ModelBuilder {
     
     static func makeSnapshot(from model: ScheduleModel) -> ScheduleModelSnapshot {
         
-        let users: [UserSnapshot] = model.users.map { user in
-            let customDayLimits: [UserWorkLimitationSnapshot] = user.wishes.workingDayLimitations.map { UserWorkLimitationSnapshot(dayLimit: $0.dayLimit, dayNumbers: $0.dayNumbers) }
-            let dayAlternatives: [UserWorkXorLimitationSnapshot] = user.wishes.workindDayXorLimitations.map { dayAlternative in
-                let rules: [UserWorkLimitationSnapshot] = dayAlternative.rules.map {
-                    UserWorkLimitationSnapshot(dayLimit: $0.dayLimit, dayNumbers: $0.dayNumbers)
-                }
-                return UserWorkXorLimitationSnapshot(rules: rules)
-            }
-            let wishes = UserWishesSnapshot(workingDayLimitations: customDayLimits, workindDayXorLimitations: dayAlternatives)
-            return UserSnapshot(id: user.id, name: user.name, wantedDayNumbers: user.wantedDayNumbers, possibleDayNumbers: user.possibleDayNumbers, workPlaceIDs: user.workPlaceIDs, wishes: wishes, maxWorkingDays: user.maxWorkingDays)
-        }
-        let workplaces: [ScheduleWorkplaceSnapshot] = model.workplaces.map { workplace in
-            let days: [ScheduleDaySnapshot] = workplace.scheduleDays.map { scheduleDay in
-                var selectedUser: ScheduleUserSnapshot? = nil
-                if let su = scheduleDay.selectedUser {
-                    selectedUser = ScheduleUserSnapshot(id: su.id, name: su.name, workplacePriority: su.workplacePriority, assignmantLevel: su.assignmantLevel, otherWorkplaceIDs: su.otherWorkplaceIDs)
-                }
-                let availableUsers: [ScheduleUserSnapshot] = scheduleDay.availableUsers.map { su in
-                    return ScheduleUserSnapshot(id: su.id, name: su.name, workplacePriority: su.workplacePriority, assignmantLevel: su.assignmantLevel, otherWorkplaceIDs: su.otherWorkplaceIDs)
-                    
-                }
-                return ScheduleDaySnapshot(dayNumber: scheduleDay.dayNumber, selectedUser: selectedUser, availableUsers: availableUsers)
-            }
-            return ScheduleWorkplaceSnapshot(id: workplace.id, name: workplace.name, scheduleDays: days)
-        }
-        let score = ScoreModelSnapshot(scheduledDays: model.score.scheduledDays, preferredDays: model.score.preferredDays)
+        let workplaces: [ScheduleWorkplaceSnapshot] = model.workplaces.map { ScheduleWorkplaceSnapshot(from: $0) }
+        let users: [UserSnapshot] = model.users.map { UserSnapshot(from: $0) }
+        let score = ScoreModelSnapshot(from: model.score)
         return ScheduleModelSnapshot(versionNumber: model.versionNumber, daysLeftToPlan: model.daysLeftToPlan, users: users, workplaces: workplaces, score: score)
     }
     
