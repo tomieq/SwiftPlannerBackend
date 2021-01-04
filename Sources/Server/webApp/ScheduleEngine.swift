@@ -16,9 +16,7 @@ class ScheduleEngine {
     public var bestModel: ScheduleModel
     private var possibleModels: [ScheduleModel]
     private var nextModelVersion = 1
-    
     private var bestScoreHits = 0
-    
     private let maxPlannedDays: Int
     
     init(model: ScheduleModel) {
@@ -181,6 +179,7 @@ class ScheduleEngine {
     
     func makePossibleModels() {
         
+        var newModels: [ScheduleModel] = []
         for workplace in self.model.workplaces {
             for scheduleDay in workplace.scheduleDays {
                 if scheduleDay.selectedUser == nil, !scheduleDay.availableUsers.isEmpty {
@@ -196,7 +195,7 @@ class ScheduleEngine {
                             try possibleModel.assign(user: user, on: scheduleDay.dayNumber, to: workplace)
                             self.assignModelIfTheBest(model: possibleModel)
                             if possibleModel.daysLeftToPlan > 0 {
-                                self.possibleModels.append(possibleModel)
+                                newModels.append(possibleModel)
                             }
                         } catch {
                             // some serious problem here
@@ -208,5 +207,7 @@ class ScheduleEngine {
                 }
             }
         }
+        // as we take always last from array, make sure the one with higher score go to the end
+        self.possibleModels.append(contentsOf: newModels.sorted { $0.score < $1.score })
     }
 }
