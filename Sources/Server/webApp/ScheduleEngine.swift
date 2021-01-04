@@ -15,7 +15,7 @@ class ScheduleEngine {
     }
     public var bestModel: ScheduleModel
     private var possibleModels: [ScheduleModel]
-    private var possibleModelCounter = 1
+    private var nextModelVersion = 1
     
     private var bestScoreHits = 0
     
@@ -187,8 +187,8 @@ class ScheduleEngine {
                     let wantingUsers = scheduleDay.availableUsers.filter { $0.assignmantLevel == .wantedDay }
                     let users = wantingUsers.isEmpty ? scheduleDay.availableUsers : wantingUsers
                     for user in users {
-                        self.possibleModelCounter = self.possibleModelCounter + 1
-                        let possibleModel = ModelBuilder.copy(model: self.model, withVersionNumber: self.possibleModelCounter)
+                        self.nextModelVersion = self.nextModelVersion + 1
+                        let possibleModel = ModelBuilder.copy(model: self.model, withVersionNumber: self.nextModelVersion)
 
                         Logger.debug("ModelPreparation", "START model ver.\(possibleModel.versionNumber)")
                         do {
