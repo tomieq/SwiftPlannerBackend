@@ -59,10 +59,13 @@ class ScheduleEngine {
             return true
         }
 
-        if self.bestScoreHits > 400 {
-            Logger.debug("Termination", "Reached limit of top score hits")
+        if self.possibleModels.isEmpty {
             return true
         }
+        /*if self.bestScoreHits > 400 {
+            Logger.debug("Termination", "Reached limit of top score hits")
+            return true
+        }*/
         return false
     }
     
@@ -72,7 +75,7 @@ class ScheduleEngine {
         if self.isSchedulingFinished() {
             return
         }
-        
+
         while let nextModel = self.possibleModels.last {
             self.model = nextModel
             Logger.debug("Exercising new model", "Assigned model ver.\(self.model.versionNumber)")

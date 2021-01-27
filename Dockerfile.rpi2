@@ -14,6 +14,6 @@ FROM wlisac/raspberry-pi2-swift:5.1-run
 
 WORKDIR /app
 
-COPY --from=build /app/.build/debug/Server .
+COPY --from=build /app/.build/debug/Planner .
 
-CMD ["./Server"]
+CMD ["./Planner"]
