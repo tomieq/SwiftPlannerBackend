@@ -62,10 +62,10 @@ class ScheduleEngine {
         if self.possibleModels.isEmpty {
             return true
         }
-        /*if self.bestScoreHits > 400 {
+        if self.bestScoreHits > 800 {
             Logger.debug("Termination", "Reached limit of top score hits")
             return true
-        }*/
+        }
         return false
     }
     
