@@ -135,6 +135,13 @@ class ScheduleEngine {
             let plannedDaysAfter = model.score.scheduledDays
             if plannedDaysBefore == plannedDaysAfter { break }
         }
+        while self.model.daysLeftToPlan > 0 {
+            let plannedDaysBefore = model.score.scheduledDays
+            Logger.debug("", "......starting assignCandidateThatAreTheHighestInHierarchy()")
+            self.assignCandidateThatAreTheHighestInHierarchy()
+            let plannedDaysAfter = model.score.scheduledDays
+            if plannedDaysBefore == plannedDaysAfter { break }
+        }
     }
     
     // funkcja szuka kandydatów, którzy jako jedyni zgłosili się do pracy danego dnia w tym miejscu pracy i mogą pracować tylko
@@ -177,6 +184,27 @@ class ScheduleEngine {
                 }
             }
         }
+    }
+    
+    func assignCandidateThatAreTheHighestInHierarchy() {
+        for workplace in self.model.workplaces {
+            for scheduleDay in workplace.scheduleDays {
+                if !scheduleDay.isScheduled {
+                    
+                    let wantingUsers = scheduleDay.availableUsers
+                        .filter { $0.assignmantLevel == .wantedDay }
+                        .sorted { $0.workplacePriority < $1.workplacePriority }
+                    if let mostImportantUser = wantingUsers.first {
+                        do {
+                            try self.model.assign(user: mostImportantUser, on: scheduleDay.dayNumber, to: workplace)
+                        } catch {
+                            // some serious problem here
+                        }
+                    }
+                }
+            }
+        }
+        
     }
 
     
